@@ -1,0 +1,3 @@
+python -m scripts.run_system --model_path models/qwen.gguf --question "What is continuity in calculus?"
+python -m scripts.run_system --model_path models/qwen.gguf --question "Explain eigenvectors"
+python -m scripts.run_system --model_path models/qwen.gguf --image data/sample1.png --question "What is shown in this image?"
