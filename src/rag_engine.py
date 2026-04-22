@@ -1,5 +1,3 @@
-# src/rag_engine.py
-
 import os
 import time
 import pickle
@@ -13,7 +11,7 @@ from src.loaders.web_loader import load_webpage
 
 
 # =========================================================
-# SIMPLE BM25 (NO EXTERNAL DEPENDENCY)
+# SIMPLE BM25 (LIGHTWEIGHT HYBRID SEARCH)
 # =========================================================
 class BM25:
     def __init__(self):
@@ -47,12 +45,11 @@ class BM25:
             if w in d_words:
                 idf = np.log((len(self.docs) + 1) / (1 + self.doc_freq.get(w, 0)))
                 score += idf
-
         return score
 
 
 # =========================================================
-# PRODUCTION RAG ENGINE
+# PRODUCTION-GRADE RAG ENGINE (FIXED + CONSISTENT)
 # =========================================================
 class RAGEngine:
     def __init__(self, persist_path="rag_store.pkl"):
@@ -63,7 +60,7 @@ class RAGEngine:
         self.chunks = []
         self.embeddings = None
 
-        # FAISS
+        # FAISS index
         self.index = None
 
         # BM25
@@ -72,14 +69,16 @@ class RAGEngine:
         # metadata
         self.meta = []
 
-        # evaluation stats
+        # =========================
+        # FIXED STATS SCHEMA
+        # =========================
         self.stats = {
             "queries": 0,
             "retrieval_hits": 0,
-            "avg_latency": 0.0
+            "avg_latency": 0.0,
+            "total_latency": 0.0
         }
 
-        # load existing index if available
         self._load()
 
     # =====================================================
@@ -87,49 +86,41 @@ class RAGEngine:
     # =====================================================
     def add_pdf(self, path):
         text = load_pdf_text(path)
-        self._add_text(text, source="pdf")
+        self._add_text(text, "pdf")
 
     def add_url(self, url):
         text = load_webpage(url)
-        self._add_text(text, source="url")
+        self._add_text(text, "url")
 
     def add_text(self, text, source="manual"):
-        self._add_text(text, source=source)
+        self._add_text(text, source)
 
     # =====================================================
-    # CORE INGESTION PIPELINE
+    # CORE INGESTION
     # =====================================================
     def _add_text(self, text, source="unknown"):
 
         chunks = chunk_text(text)
-
         if not chunks:
             return
 
-        # metadata tracking
         self.chunks.extend(chunks)
         self.meta.extend([source] * len(chunks))
 
-        # BM25 update
         self.bm25.add(chunks)
 
-        # embeddings (lazy incremental)
-        new_emb = embed(chunks)
-        new_emb = np.array(new_emb).astype("float32")
+        new_emb = np.array(embed(chunks)).astype("float32")
 
         if self.embeddings is None:
             self.embeddings = new_emb
         else:
             self.embeddings = np.vstack([self.embeddings, new_emb])
 
-        # rebuild index
         self._build_index()
-
-        # persist
         self._save()
 
     # =====================================================
-    # INDEXING
+    # INDEX
     # =====================================================
     def _build_index(self):
 
@@ -143,7 +134,7 @@ class RAGEngine:
         self.index.add(self.embeddings)
 
     # =====================================================
-    # HYBRID RETRIEVAL (BM25 + VECTOR)
+    # HYBRID RETRIEVAL (FIXED STATS)
     # =====================================================
     def retrieve(self, query, k=5):
 
@@ -152,8 +143,8 @@ class RAGEngine:
 
         start = time.time()
 
-        # vector search
-        q_vec = embed([query]).astype("float32")
+        q_vec = np.array(embed([query])).astype("float32")
+
         scores, idxs = self.index.search(q_vec, k * 3)
 
         results = []
@@ -166,7 +157,6 @@ class RAGEngine:
 
             bm25_score = self.bm25.score(query, chunk)
 
-            # hybrid scoring
             final_score = (0.7 * float(score)) + (0.3 * bm25_score)
 
             results.append((final_score, chunk))
@@ -175,22 +165,22 @@ class RAGEngine:
 
         latency = time.time() - start
 
-        # stats update
+        # =========================
+        # FIXED STAT TRACKING
+        # =========================
         self.stats["queries"] += 1
+        self.stats["total_latency"] += latency
         self.stats["avg_latency"] = (
-            (self.stats["avg_latency"] * (self.stats["queries"] - 1) + latency)
-            / self.stats["queries"]
+            self.stats["total_latency"] / self.stats["queries"]
         )
 
         if len(results) > 0:
             self.stats["retrieval_hits"] += 1
 
-        # safety cap to avoid overload
-        k = min(k, 4)
         return [r[1] for r in results[:k]]
 
     # =====================================================
-    # EVALUATION METRICS
+    # EVALUATION STATS
     # =====================================================
     def get_stats(self):
         return {
@@ -223,10 +213,10 @@ class RAGEngine:
             with open(self.persist_path, "rb") as f:
                 data = pickle.load(f)
 
-                self.chunks = data.get("chunks", [])
-                self.embeddings = data.get("embeddings", None)
-                self.meta = data.get("meta", [])
-                self.stats = data.get("stats", self.stats)
+            self.chunks = data.get("chunks", [])
+            self.embeddings = data.get("embeddings", None)
+            self.meta = data.get("meta", [])
+            self.stats = data.get("stats", self.stats)
 
             if self.embeddings is not None:
                 self._build_index()
