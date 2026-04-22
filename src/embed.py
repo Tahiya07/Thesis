@@ -1,17 +1,39 @@
-#src/embed.py
+# src/embed.py
 
-from sentence_transformers import SentenceTransformer
+from typing import List, Union
+
+_model = None
 
 
-# Load once globally (VERY IMPORTANT)
-_model = SentenceTransformer("all-MiniLM-L6-v2")
-
-def embed(texts):
+def _get_model():
     """
-    Safe embedding function
-    Supports string or list
+    Lazy-load SentenceTransformer only when first needed.
+    Prevents slow startup and unwanted import-time loading.
     """
+    global _model
+
+    if _model is None:
+        print("🧠 Loading embedding model (lazy)...")
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    return _model
+
+
+def embed(texts: Union[str, List[str]]):
+    """
+    Safe embedding function (lazy-loaded model)
+
+    Args:
+        texts: str or list of strings
+
+    Returns:
+        numpy array embeddings
+    """
+
     if isinstance(texts, str):
         texts = [texts]
 
-    return _model.encode(texts, normalize_embeddings=True)
+    model = _get_model()
+
+    return model.encode(texts, normalize_embeddings=True)

@@ -1,5 +1,5 @@
 from src.llm import load_rag_model
-from src.privacy.learned_privacy import RAGEngine
+from src.rag_engine import RAGEngine
 from src.summarizer import summarize
 from src.bloom import classify_bloom
 

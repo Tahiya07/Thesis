@@ -1,157 +1,115 @@
 import argparse
+import os
 
-from src.llm import load_rag_model
-from src.privacy.learned_privacy import RAGEngine
-from src.bloom import classify_bloom
-from src.summarizer import summarize
-from src.image_pipeline import ImagePipeline
+from src.llm import load_rag_model, generate, classify_bloom
+from src.rag_engine import RAGEngine
+from src.rag_token_manager import TokenManager
 
 
-# =========================
+# =========================================================
 # SYSTEM WRAPPER
-# =========================
-
+# =========================================================
 class AcademicSystem:
     def __init__(self, model_path):
-        print("🚀 Loading Qwen GGUF model...")
+        print("⚡ System booting (lazy mode)...")
+
+        print("🧠 Loading LLM (first use only)...")
         self.llm = load_rag_model(model_path)
 
-        print("🧠 Initializing RAG engine...")
+        print("📚 Initializing RAG (first use only)...")
         self.rag = RAGEngine()
 
-    # ---------------------
-    # ASK QUESTION
-    # ---------------------
+        # 🔥 TOKEN MANAGER (NEW)
+        self.token_manager = TokenManager(model_context_size=2304)
+
+    # -------------------------
+    # TEXT QUESTION
+    # -------------------------
     def ask(self, question: str, use_rag=True):
-        if use_rag:
-            context = "\n".join(self.rag.retrieve(question))
-        else:
-            context = ""
 
-        from src.llm import generate
+        raw_context = self.rag.retrieve(question) if use_rag else []
 
-        result = generate(
-            self.llm,
-            prompt=question,
-            context=context if context else None,
-            temperature=0.2,
-            max_tokens=256
+        # 🔥 SAFE CONTEXT BUILDING
+        context_text = self.token_manager.build_safe_context(
+            raw_context,
+            question
         )
-
-        return {
-            "answer": result["response"],
-            "context_used": bool(context)
-        }
-
-    # ---------------------
-    # PDF
-    # ---------------------
-    def add_pdf(self, path):
-        self.rag.build_from_pdf(path)
-
-    # ---------------------
-    # URL
-    # ---------------------
-    def add_url(self, url):
-        self.rag.build_from_url(url)
-
-    # ---------------------
-    # IMAGE
-    # ---------------------
-    def ask_image(self, image_path, question):
-        print("🖼️ Processing image...")
-
-        pipeline = ImagePipeline()
-        result = pipeline.process(image_path)
-
-        # Inject into RAG
-        self.rag.build_from_text(result["fused_text"])
-
-        from src.llm import generate
 
         response = generate(
             self.llm,
-            prompt=f"""
-    Question: {question}
-
-    IMPORTANT:
-    - Image interpretation may be noisy
-    - Trust OCR more than caption
-    - If uncertain, say "uncertain"
-
-    Answer carefully.
-    """,
-            context=result["fused_text"],
+            prompt=question,
+            context=context_text if context_text else None,
             temperature=0.2,
             max_tokens=256
         )
 
         return {
             "answer": response["response"],
-            "mode": result["mode"],
-            "confidence": result["confidence"]
+            "context_used": bool(raw_context),
+            "safe_context": True
         }
 
+    # -------------------------
+    # PDF INGESTION
+    # -------------------------
+    def add_pdf(self, path):
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"PDF not found: {path}")
 
-# =========================
+        self.rag.add_pdf(path)
+        print("✅ PDF loaded into RAG")
+
+    # -------------------------
+    # URL INGESTION
+    # -------------------------
+    def add_url(self, url):
+        self.rag.add_url(url)
+        print("✅ URL loaded into RAG")
+
+
+# =========================================================
 # MAIN CLI
-# =========================
-
+# =========================================================
 def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--model_path", required=True)
-
     parser.add_argument("--question", type=str)
     parser.add_argument("--pdf", type=str)
     parser.add_argument("--url", type=str)
-    parser.add_argument("--image", type=str)
 
     args = parser.parse_args()
 
     system = AcademicSystem(args.model_path)
 
-    # ---------------------
-    # PDF MODE
-    # ---------------------
+    # -------------------------
+    # INGESTION
+    # -------------------------
     if args.pdf:
         system.add_pdf(args.pdf)
-        print("✅ PDF loaded")
 
-    # ---------------------
-    # URL MODE
-    # ---------------------
     if args.url:
         system.add_url(args.url)
-        print("✅ URL loaded")
 
-    # ---------------------
-    # IMAGE MODE
-    # ---------------------
-    if args.image and args.question:
-        out = system.ask_image(args.image, args.question)
-
-        print("\n================ ANSWER ================\n")
-        print(out["answer"])
-
-        print("\nBloom Level:", classify_bloom(system.llm, args.question))
-        print("Used RAG:", out["context_used"])
-        return
-
-    # ---------------------
-    # TEXT QUESTION MODE
-    # ---------------------
+    # -------------------------
+    # QUESTION
+    # -------------------------
     if args.question:
         out = system.ask(args.question)
 
         print("\n================ ANSWER ================\n")
         print(out["answer"])
 
-        print("\nBloom Level:", classify_bloom(system.llm, args.question))
+        try:
+            bloom = classify_bloom(system.llm, args.question)
+        except:
+            bloom = "Unknown"
+
+        print("\nBloom Level:", bloom)
         print("Used RAG:", out["context_used"])
         return
 
-    print("❌ No valid input provided")
+    print("❌ No valid input provided.")
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ from llama_cpp import Llama
 def load_rag_model(path: str):
     return Llama(
         model_path=path,
-        n_ctx=4096,
+        n_ctx=2084,
         n_threads=8,
         use_mmap=True,
         use_mlock=False,
