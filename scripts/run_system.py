@@ -1,9 +1,11 @@
 import argparse
 import os
+import numpy as np
 
 from src.llm import load_rag_model, generate, classify_bloom
 from src.rag_engine import RAGEngine
 from src.rag_token_manager import TokenManager
+from sentence_transformers import SentenceTransformer
 
 
 # =========================================================
@@ -19,34 +21,108 @@ class AcademicSystem:
         print("📚 Initializing RAG (first use only)...")
         self.rag = RAGEngine()
 
-        # 🔥 TOKEN MANAGER (NEW)
+        # token safety
         self.token_manager = TokenManager(model_context_size=2304)
+
+        # =====================================================
+        # EMBEDDING MODEL (USED FOR RAG GATING)
+        # =====================================================
+        print("🧠 Loading embedding model (RAG scoring)...")
+        self.embedder = SentenceTransformer("all-MiniLM-L6-v2")
+
+    # -------------------------
+    # COSINE SIMILARITY
+    # -------------------------
+    def _cosine(self, a, b):
+        a = np.array(a)
+        b = np.array(b)
+        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8))
+
+    # -------------------------
+    # RETRIEVAL SCORING (FIXED)
+    # -------------------------
+    def retrieval_score(self, context: str, question: str):
+        if not context or not question:
+            return 0.0
+
+        c_emb = self.embedder.encode(context)
+        q_emb = self.embedder.encode(question)
+
+        return self._cosine(c_emb, q_emb)
 
     # -------------------------
     # TEXT QUESTION
     # -------------------------
     def ask(self, question: str, use_rag=True):
 
-        raw_context = self.rag.retrieve(question) if use_rag else []
+        raw_context = []
+        context_text = ""
+        used_rag = False
 
-        # 🔥 SAFE CONTEXT BUILDING
-        context_text = self.token_manager.build_safe_context(
-            raw_context,
-            question
-        )
+        # =========================
+        # STEP 1: RETRIEVE
+        # =========================
+        if use_rag:
+            raw_context = self.rag.retrieve(question)
 
+        # =========================
+        # STEP 2: RAG GATING (FIXED)
+        # =========================
+        if raw_context:
+            combined_context = "\n".join(raw_context)
+
+            score = self.retrieval_score(combined_context, question)
+
+            # ✔ stable semantic threshold
+            if score > 0.35:
+                context_text = self.token_manager.build_safe_context(
+                    raw_context,
+                    question
+                )
+                used_rag = True
+            else:
+                context_text = ""
+                used_rag = False
+
+        # =========================
+        # STEP 3: PROMPT CONSTRUCTION
+        # =========================
+        if used_rag:
+            prompt = f"""
+You MUST answer using ONLY the provided context.
+
+CONTEXT:
+{context_text}
+
+QUESTION:
+{question}
+
+ANSWER:
+"""
+        else:
+            prompt = f"""
+Answer the question clearly and concisely.
+
+QUESTION:
+{question}
+
+ANSWER:
+"""
+
+        # =========================
+        # STEP 4: GENERATION
+        # =========================
         response = generate(
             self.llm,
-            prompt=question,
-            context=context_text if context_text else None,
+            prompt=prompt,
             temperature=0.2,
             max_tokens=256
         )
 
         return {
             "answer": response["response"],
-            "context_used": bool(raw_context),
-            "safe_context": True
+            "context_used": used_rag,
+            "retrieval_score": score if raw_context else 0.0
         }
 
     # -------------------------
@@ -107,6 +183,7 @@ def main():
 
         print("\nBloom Level:", bloom)
         print("Used RAG:", out["context_used"])
+        print("Retrieval Score:", round(out["retrieval_score"], 4))
         return
 
     print("❌ No valid input provided.")

@@ -11,13 +11,12 @@ from src.loaders.web_loader import load_webpage
 
 
 # =========================================================
-# SIMPLE BM25 (LIGHTWEIGHT HYBRID SEARCH)
+# BM25 (FIXED LIGHTWEIGHT VERSION)
 # =========================================================
 class BM25:
     def __init__(self):
         self.docs = []
         self.doc_freq = {}
-        self.avg_len = 0
 
     def add(self, docs):
         self.docs.extend(docs)
@@ -25,53 +24,45 @@ class BM25:
 
     def _recalc(self):
         self.doc_freq = {}
-        total_len = 0
 
         for doc in self.docs:
             words = doc.lower().split()
-            total_len += len(words)
+            unique_words = set(words)
 
-            for w in set(words):
+            for w in unique_words:
                 self.doc_freq[w] = self.doc_freq.get(w, 0) + 1
-
-        self.avg_len = total_len / (len(self.docs) + 1e-6)
 
     def score(self, query, doc):
         q_words = query.lower().split()
         d_words = doc.lower().split()
 
-        score = 0
+        doc_len = len(d_words)
+        score = 0.0
+
         for w in q_words:
             if w in d_words:
+                tf = d_words.count(w)
                 idf = np.log((len(self.docs) + 1) / (1 + self.doc_freq.get(w, 0)))
-                score += idf
+                score += (tf * idf) / (doc_len + 1e-8)
+
         return score
 
 
 # =========================================================
-# PRODUCTION-GRADE RAG ENGINE (FIXED + CONSISTENT)
+# RAG ENGINE (FIXED + STABLE HYBRID RETRIEVAL)
 # =========================================================
 class RAGEngine:
     def __init__(self, persist_path="rag_store.pkl"):
 
         self.persist_path = persist_path
 
-        # storage
         self.chunks = []
         self.embeddings = None
-
-        # FAISS index
         self.index = None
-
-        # BM25
-        self.bm25 = BM25()
-
-        # metadata
         self.meta = []
 
-        # =========================
-        # FIXED STATS SCHEMA
-        # =========================
+        self.bm25 = BM25()
+
         self.stats = {
             "queries": 0,
             "retrieval_hits": 0,
@@ -95,9 +86,6 @@ class RAGEngine:
     def add_text(self, text, source="manual"):
         self._add_text(text, source)
 
-    # =====================================================
-    # CORE INGESTION
-    # =====================================================
     def _add_text(self, text, source="unknown"):
 
         chunks = chunk_text(text)
@@ -111,6 +99,11 @@ class RAGEngine:
 
         new_emb = np.array(embed(chunks)).astype("float32")
 
+        # =========================
+        # FIX 1: NORMALIZE EMBEDDINGS (CRITICAL)
+        # =========================
+        new_emb = new_emb / (np.linalg.norm(new_emb, axis=1, keepdims=True) + 1e-8)
+
         if self.embeddings is None:
             self.embeddings = new_emb
         else:
@@ -120,7 +113,7 @@ class RAGEngine:
         self._save()
 
     # =====================================================
-    # INDEX
+    # INDEX BUILDING
     # =====================================================
     def _build_index(self):
 
@@ -134,7 +127,7 @@ class RAGEngine:
         self.index.add(self.embeddings)
 
     # =====================================================
-    # HYBRID RETRIEVAL (FIXED STATS)
+    # RETRIEVAL (FIXED HYBRID SCORING)
     # =====================================================
     def retrieve(self, query, k=5):
 
@@ -145,42 +138,62 @@ class RAGEngine:
 
         q_vec = np.array(embed([query])).astype("float32")
 
+        # =========================
+        # FIX 2: NORMALIZE QUERY EMBEDDING
+        # =========================
+        q_vec = q_vec / (np.linalg.norm(q_vec, axis=1, keepdims=True) + 1e-8)
+
         scores, idxs = self.index.search(q_vec, k * 3)
 
         results = []
 
-        for score, i in zip(scores[0], idxs[0]):
-            if i >= len(self.chunks):
+        for i, idx in enumerate(idxs[0]):
+            if idx >= len(self.chunks):
                 continue
 
-            chunk = self.chunks[i]
+            chunk = self.chunks[idx]
 
+            faiss_score = float(scores[0][i])
             bm25_score = self.bm25.score(query, chunk)
 
-            final_score = (0.7 * float(score)) + (0.3 * bm25_score)
+            results.append((faiss_score, bm25_score, chunk))
 
-            results.append((final_score, chunk))
+        if not results:
+            return []
 
-        results.sort(reverse=True, key=lambda x: x[0])
+        # =========================
+        # FIX 3: NORMALIZE SCORES BEFORE FUSION
+        # =========================
+        faiss_scores = np.array([r[0] for r in results])
+        bm25_scores = np.array([r[1] for r in results])
+
+        faiss_scores = (faiss_scores - faiss_scores.min()) / (faiss_scores.ptp() + 1e-8)
+        bm25_scores = (bm25_scores - bm25_scores.min()) / (bm25_scores.ptp() + 1e-8)
+
+        final_results = []
+
+        for i in range(len(results)):
+            score = 0.7 * faiss_scores[i] + 0.3 * bm25_scores[i]
+            final_results.append((score, results[i][2]))
+
+        final_results.sort(reverse=True, key=lambda x: x[0])
 
         latency = time.time() - start
 
         # =========================
-        # FIXED STAT TRACKING
+        # STATS
         # =========================
         self.stats["queries"] += 1
         self.stats["total_latency"] += latency
-        self.stats["avg_latency"] = (
-            self.stats["total_latency"] / self.stats["queries"]
-        )
+        self.stats["avg_latency"] = self.stats["total_latency"] / self.stats["queries"]
 
-        if len(results) > 0:
+        if len(final_results) > 0 and final_results[0][0] > 0.3:
             self.stats["retrieval_hits"] += 1
 
-        return [r[1] for r in results[:k]]
+        return [r[1] for r in final_results[:k]]
 
     # =====================================================
-    # EVALUATION STATS
+    # STATS
     # =====================================================
     def get_stats(self):
         return {

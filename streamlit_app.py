@@ -1,25 +1,24 @@
 import streamlit as st
-import pandas as pd
 import time
-import matplotlib.pyplot as plt
+import numpy as np
 
 from scripts.run_system import AcademicSystem
+from evaluation.metrics import RAGEvaluator
+from src.loaders.pdf_loader import load_pdf_text
+from src.loaders.web_loader import load_webpage
 
 
 # =========================================================
-# PAGE CONFIG
+# SETUP
 # =========================================================
-st.set_page_config(
-    page_title="Thesis RAG Dashboard",
-    layout="wide"
-)
+st.set_page_config(page_title="Live RAG Dashboard", layout="wide")
 
-st.title("📊 Lightweight RAG Thesis Evaluation Dashboard")
-st.caption("Interactive evaluation + live system demo")
+st.title("📊 Live RAG Evaluation System")
+st.caption("Upload data → Ask questions → See real-time evaluation")
 
 
 # =========================================================
-# LOAD SYSTEM (LAZY - CLOUD SAFE)
+# INIT SYSTEM
 # =========================================================
 @st.cache_resource
 def load_system():
@@ -27,168 +26,110 @@ def load_system():
 
 
 system = load_system()
+evaluator = RAGEvaluator()
 
 
 # =========================================================
-# LOAD RESULTS
+# SIDEBAR: DATA INGESTION
 # =========================================================
-@st.cache_data
-def load_results():
-    return pd.read_csv("evaluation/results.csv")
+st.sidebar.header("📥 Data Ingestion")
 
-
-df = None
-
-try:
-    df = load_results()
-except:
-    st.warning("⚠️ No evaluation results found. Run run_eval.py first.")
+pdf_file = st.sidebar.file_uploader("Upload PDF", type=["pdf"])
+url_input = st.sidebar.text_input("Enter Web URL")
 
 
 # =========================================================
-# SIDEBAR NAVIGATION
+# INGEST DATA
 # =========================================================
-page = st.sidebar.radio(
-    "Navigation",
-    ["📈 Live Demo", "📊 Evaluation Dashboard"]
-)
+if st.sidebar.button("📚 Load Data into RAG"):
 
+    if pdf_file:
+        with open("temp.pdf", "wb") as f:
+            f.write(pdf_file.read())
 
-# =========================================================
-# 1. LIVE DEMO PAGE
-# =========================================================
-if page == "📈 Live Demo":
+        system.add_pdf("temp.pdf")
+        st.sidebar.success("PDF loaded")
 
-    st.subheader("🧠 Ask Your Model (Live Inference)")
+    if url_input:
+        system.add_url(url_input)
+        st.sidebar.success("URL loaded")
 
-    question = st.text_input("Enter question")
-
-    use_rag = st.toggle("Enable RAG", value=True)
-
-    if st.button("Generate Answer") and question:
-
-        start = time.time()
-        result = system.ask(question, use_rag=use_rag)
-        end = time.time()
-
-        st.markdown("### 📌 Answer")
-        st.write(result["answer"])
-
-        st.metric("⏱️ Latency", f"{end - start:.2f}s")
-        st.write("📚 RAG Used:", result["context_used"])
+    if not pdf_file and not url_input:
+        st.sidebar.warning("No input provided")
 
 
 # =========================================================
-# 2. EVALUATION DASHBOARD
+# MAIN QUERY SECTION
 # =========================================================
-elif page == "📊 Evaluation Dashboard":
+st.subheader("🧠 Ask Question")
 
-    if df is None:
+question = st.text_input("Enter your question")
+use_rag = st.toggle("Enable RAG", value=True)
+
+
+if st.button("Run Inference"):
+
+    if not question:
+        st.warning("Please enter a question")
         st.stop()
 
-    st.subheader("📊 Model Performance Overview")
+    # =====================================================
+    # STEP 1: RETRIEVE CONTEXT
+    # =====================================================
+    raw_context = system.rag.retrieve(question) if use_rag else []
+
+    context_text = "\n".join(raw_context)
+
+    # =====================================================
+    # STEP 2: RAG GATING SCORE
+    # =====================================================
+    if context_text:
+        retrieval_score = system.retrieval_score(context_text, question)
+    else:
+        retrieval_score = 0.0
+
+
+    # =====================================================
+    # STEP 3: ASK MODEL
+    # =====================================================
+    start = time.time()
+
+    result = system.ask(question, use_rag=use_rag)
+
+    latency = time.time() - start
+
+
+    # =====================================================
+    # STEP 4: COMPUTE LIVE METRICS
+    # =====================================================
+
+    answer = result["answer"]
+
+    bleu = evaluator.compute_bleu(question, answer)
+    faith = evaluator.faithfulness(context_text, answer) if context_text else 0.0
+    hallucination = evaluator.hallucination_score(context_text, answer) if context_text else 1.0
+
+
+    # =====================================================
+    # OUTPUT
+    # =====================================================
+    st.markdown("## 📌 Answer")
+    st.write(answer)
+
+    st.markdown("## 📊 Live Metrics")
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Avg BLEU (RAG)", f"{df['bleu_rag'].mean():.3f}")
-    col2.metric("Avg BLEU (No RAG)", f"{df['bleu_no_rag'].mean():.3f}")
+    col1.metric("⏱️ Latency", f"{latency:.2f}s")
+    col2.metric("📚 Retrieval Score", f"{retrieval_score:.3f}")
+    col3.metric("🎯 Faithfulness", f"{faith:.3f}")
+    col4.metric("⚠️ Hallucination", f"{hallucination:.3f}")
 
-    col3.metric("Avg Latency (RAG)", f"{df['latency_rag'].mean():.3f}s")
-    col4.metric("Avg Latency (No RAG)", f"{df['latency_no_rag'].mean():.3f}s")
-
-
-    # =====================================================
-    # BLEU GRAPH
-    # =====================================================
-    st.subheader("📈 BLEU Score Comparison")
-
-    fig, ax = plt.subplots()
-    ax.plot(df["bleu_rag"], label="RAG")
-    ax.plot(df["bleu_no_rag"], label="No RAG")
-    ax.set_title("BLEU Score per Sample")
-    ax.legend()
-    st.pyplot(fig)
+    st.metric("🧪 BLEU", f"{bleu:.3f}")
 
 
     # =====================================================
-    # HALLUCINATION
+    # DEBUG VIEW
     # =====================================================
-    st.subheader("🧠 Hallucination (LLM Judge)")
-
-    fig, ax = plt.subplots()
-    ax.plot(df["llm_hall_rag"], label="RAG")
-    ax.plot(df["llm_hall_no_rag"], label="No RAG")
-    ax.set_title("Hallucination Score (Lower is Better)")
-    ax.legend()
-    st.pyplot(fig)
-
-
-    # =====================================================
-    # LATENCY
-    # =====================================================
-    st.subheader("⏱️ Latency Comparison")
-
-    fig, ax = plt.subplots()
-    ax.plot(df["latency_rag"], label="RAG")
-    ax.plot(df["latency_no_rag"], label="No RAG")
-    ax.set_title("Inference Latency")
-    ax.legend()
-    st.pyplot(fig)
-
-
-    # =====================================================
-    # FAITHFULNESS (IF EXISTS)
-    # =====================================================
-    if "faith_rag" in df.columns:
-
-        st.subheader("🎯 Faithfulness Score")
-
-        fig, ax = plt.subplots()
-        ax.plot(df["faith_rag"], label="RAG")
-        ax.plot(df["faith_no_rag"], label="No RAG")
-        ax.set_title("Faithfulness Comparison")
-        ax.legend()
-        st.pyplot(fig)
-
-
-    # =====================================================
-    # RETRIEVAL QUALITY
-    # =====================================================
-    if "precision@k" in df.columns:
-
-        st.subheader("📚 Retrieval Quality (RAG Only)")
-
-        fig, ax = plt.subplots()
-        ax.plot(df["precision@k"], label="Precision@K")
-        ax.plot(df["recall@k"], label="Recall@K")
-        ax.set_title("Retrieval Performance")
-        ax.legend()
-        st.pyplot(fig)
-
-
-    # =====================================================
-    # SUMMARY BAR CHART
-    # =====================================================
-    st.subheader("📊 Overall System Summary")
-
-    metrics = {
-        "BLEU RAG": df["bleu_rag"].mean(),
-        "BLEU No RAG": df["bleu_no_rag"].mean(),
-        "Hallucination RAG": df["llm_hall_rag"].mean(),
-        "Hallucination No RAG": df["llm_hall_no_rag"].mean(),
-        "Latency RAG": df["latency_rag"].mean(),
-        "Latency No RAG": df["latency_no_rag"].mean(),
-    }
-
-    fig, ax = plt.subplots()
-    ax.bar(metrics.keys(), metrics.values())
-    ax.set_title("Final Performance Comparison")
-    plt.xticks(rotation=45, ha="right")
-    st.pyplot(fig)
-
-
-    # =====================================================
-    # RAW DATA
-    # =====================================================
-    with st.expander("📄 Raw Results Table"):
-        st.dataframe(df)
+    with st.expander("📄 Retrieved Context"):
+        st.write(context_text if context_text else "No context retrieved")
