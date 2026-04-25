@@ -1,9 +1,11 @@
 import json
 import os
 import datetime
+import numpy as np
 
-from evaluation.metrics import RAGEvaluator
+from evaluation.metrics import UnifiedEvaluator
 from scripts.run_system import AcademicSystem
+
 
 # =====================================================
 # CONFIG
@@ -16,8 +18,9 @@ OUTPUT_FILE = os.path.join(OUTPUT_DIR, "results.json")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+
 # =====================================================
-# THESIS DATASET (Aligned with your PDF content)
+# DATASET
 # =====================================================
 DATASET = [
     {
@@ -44,161 +47,155 @@ DATASET = [
         "question": "What happens when gas is detected?",
         "reference": "The system triggers an alert such as a buzzer or notification",
         "keywords": ["alert", "buzzer", "alarm"]
-    },
-    {
-        "question": "Explain the system architecture based on the document and diagram.",
-        "reference": "",
-        "keywords": ["system", "architecture", "controller", "sensor"]
-    },
-    {
-        "question": "How do sensors and the controller interact in the system?",
-        "reference": "",
-        "keywords": ["sensor", "controller", "processing"]
-    },
-    {
-        "question": "What are the limitations of the system?",
-        "reference": "",
-        "keywords": ["limitation", "accuracy", "constraint"]
-    },
-    {
-        "question": "How can the system be improved in future work?",
-        "reference": "",
-        "keywords": ["future", "improvement", "AI", "automation"]
     }
 ]
 
-# =====================================================
-# IMAGE INGESTION (STRONG LIGHTWEIGHT MULTIMODAL)
-# =====================================================
-def process_image_into_rag(system, image_path):
-    """
-    Lightweight multimodal fusion:
-    OCR + BLIP caption + structured context
-    """
-
-    from src.loaders.multimodal_loader import load_image_text
-    from src.blip_captioner import BLIPCaptioner
-
-    print(f"🖼️ Processing image: {image_path}")
-
-    # OCR text
-    try:
-        ocr_text = load_image_text(image_path)
-    except:
-        ocr_text = ""
-
-    # Caption
-    try:
-        captioner = BLIPCaptioner()
-        caption = captioner.caption(image_path)
-    except:
-        caption = ""
-
-    # Structured fusion (VERY IMPORTANT)
-    fused_text = f"""
-[IMAGE ANALYSIS]
-
-This image is part of the fire-fighting and gas detection robot system.
-
-Caption:
-{caption}
-
-Extracted Text:
-{ocr_text}
-
-Interpretation:
-The image likely represents a circuit diagram, system architecture, or component layout.
-It includes sensors, controller (ESP32), motor drivers, and output components like pump or buzzer.
-Relationships between components define how detection triggers response.
-"""
-
-    system.rag.add_text(fused_text)
-
 
 # =====================================================
-# MAIN RUNNER
+# RUN
 # =====================================================
 def run():
 
-    print("\n🚀 Starting Multimodal RAG Evaluation Pipeline")
-    print(f"📂 Output Directory: {OUTPUT_DIR}")
+    print("\n🚀 Starting Publication-Grade Evaluation Pipeline")
+    print(f"📂 Output: {OUTPUT_DIR}")
 
-    # -----------------------------
-    # INIT SYSTEM
-    # -----------------------------
     system = AcademicSystem(MODEL_PATH)
-    evaluator = RAGEvaluator()
+    evaluator = UnifiedEvaluator(MODEL_PATH)
 
-    # =====================================================
-    # PDF INGESTION
-    # =====================================================
-    PDF_PATH = "data/robot_proposal.pdf"
+    # -----------------------------
+    # INGEST DATA
+    # -----------------------------
+    pdf_path = "data/robot_proposal.pdf"
+    if os.path.exists(pdf_path):
+        system.add_pdf(pdf_path)
 
-    if os.path.exists(PDF_PATH):
-        print("📄 Loading PDF...")
-        system.add_pdf(PDF_PATH)
-    else:
-        print("⚠️ PDF not found:", PDF_PATH)
+    image_path = "data/ckt1.png"
+    if os.path.exists(image_path):
+        system.add_image(image_path)
 
-    # =====================================================
-    # IMAGE INGESTION
-    # =====================================================
-    IMAGE_PATHS = [
-        "data/ckt1.png",
-    ]
-
-    for img_path in IMAGE_PATHS:
-        if os.path.exists(img_path):
-            process_image_into_rag(system, img_path)
-
-    # =====================================================
-    # RUN EVALUATION
-    # =====================================================
+    # -----------------------------
+    # EVALUATION
+    # -----------------------------
     results = []
 
     for i, sample in enumerate(DATASET):
 
-        print(f"\n🔍 [{i+1}/{len(DATASET)}] {sample['question']}")
+        print(f"\n🔍 Q{i+1}: {sample['question']}")
 
         res = evaluator.evaluate_sample(
             system,
-            question=sample["question"],
-            reference=sample.get("reference"),
-            keywords=sample.get("keywords")
+            sample["question"],
+            sample.get("reference"),
+            sample.get("keywords")
         )
-
-        res["sample_id"] = i
-
-        # 🔥 OPTIONAL: remove heavy chunks from saved results
-        if "chunks" in res:
-            del res["chunks"]
 
         results.append(res)
 
-    # =====================================================
-    # SAVE RESULTS
-    # =====================================================
+    # -----------------------------
+    # ATTACK SIMULATION (BUILT-IN)
+    # -----------------------------
+    attack = evaluator.attack_simulation(system=system, n=10)
+    attack_rate = attack["attack_success_rate"]
+
+    # -----------------------------
+    # PRIVACY-ACCURACY CURVE (FIXED)
+    # -----------------------------
+    lambdas = [0.0, 0.2, 0.5]
+
+    quality_curve = []
+    privacy_curve = []
+    for lam in lambdas:
+        system.rag.set_ablation(lambda_privacy=lam)
+
+        lam_results = []
+        for sample in DATASET:
+            lam_results.append(
+                evaluator.evaluate_sample(
+                    system,
+                    sample["question"],
+                    sample.get("reference"),
+                    sample.get("keywords")
+                )
+            )
+
+        quality_curve.append(float(np.mean([r["answer_similarity"] for r in lam_results])))
+        privacy_curve.append(float(np.mean([r["mean_chunk_privacy"] for r in lam_results])))
+
+    ablations = {}
+    ablation_settings = {
+        "full_system": {
+            "use_privacy": True,
+            "use_diversity": True,
+            "use_learning_privacy": system.rag.use_learning_privacy,
+            "lambda_privacy": system.rag.lambda_privacy,
+        },
+        "no_privacy": {
+            "use_privacy": False,
+            "use_diversity": True,
+            "use_learning_privacy": system.rag.use_learning_privacy,
+            "lambda_privacy": system.rag.lambda_privacy,
+        },
+        "no_diversity": {
+            "use_privacy": True,
+            "use_diversity": False,
+            "use_learning_privacy": system.rag.use_learning_privacy,
+            "lambda_privacy": system.rag.lambda_privacy,
+        },
+    }
+
+    for name, cfg in ablation_settings.items():
+        system.rag.set_ablation(**cfg)
+
+        variant_results = []
+        for sample in DATASET:
+            variant_results.append(
+                evaluator.evaluate_sample(
+                    system,
+                    sample["question"],
+                    sample.get("reference"),
+                    sample.get("keywords")
+                )
+            )
+
+        ablations[name] = {
+            "config": cfg,
+            "summary": evaluator.summary(variant_results)
+        }
+
+    system.rag.set_ablation(use_privacy=True, use_diversity=True, lambda_privacy=0.3)
+
+    # -----------------------------
+    # SAVE
+    # -----------------------------
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
+        json.dump({
+            "results": results,
+            "attack_success_rate": attack_rate,
+            "ablations": ablations,
+            "privacy_accuracy_curve": {
+                "lambdas": lambdas,
+                "answer_similarity": quality_curve,
+                "mean_chunk_privacy": privacy_curve
+            }
+        }, f, indent=2)
 
-    print("\n✅ Evaluation Complete")
-    print(f"📊 Saved to: {OUTPUT_FILE}")
-
-    # =====================================================
+    # -----------------------------
     # SUMMARY
-    # =====================================================
-    if results:
+    # -----------------------------
+    print("\n📊 SUMMARY")
 
-        avg_latency = sum(r["latency"] for r in results) / len(results)
-        avg_hallucination = sum(r["hallucination"] for r in results) / len(results)
-        avg_faithfulness = sum(r["faithfulness"] for r in results) / len(results)
-        avg_precision = sum(r["precision@k"] for r in results) / len(results)
+    print("Latency:", np.mean([r["latency"] for r in results]))
+    print("Answer Similarity:", np.mean([r["answer_similarity"] for r in results]))
+    print("Faithfulness:", np.mean([r["faithfulness"] for r in results]))
+    print("Hallucination:", np.mean([r["hallucination"] for r in results]))
+    print("Precision@k:", np.mean([r["precision@k"] for r in results]))
+    print("Retrieval Redundancy:", np.mean([r["retrieval_redundancy"] for r in results]))
+    print("Mean Chunk Privacy:", np.mean([r["mean_chunk_privacy"] for r in results]))
+    print("Privacy Leakage:", np.mean([r["privacy_leakage"] for r in results]))
 
-        print("\n📌 QUICK SUMMARY")
-        print(f"Avg Latency: {avg_latency:.3f}s")
-        print(f"Avg Hallucination: {avg_hallucination:.3f}")
-        print(f"Avg Faithfulness: {avg_faithfulness:.3f}")
-        print(f"Avg Precision@k: {avg_precision:.3f}")
+    print("\n🛡 Attack Success Rate:", attack_rate)
+
+    print(f"\n✅ Saved: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

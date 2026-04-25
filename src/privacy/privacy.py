@@ -2,9 +2,17 @@
 
 import hashlib
 
+
+PRIVATE_KEYWORDS = [
+    "student id", "id number", "registration",
+    "password", "credential",
+    "marks", "grade", "score",
+    "exam", "confidential",
+    "personal", "name"
+]
+
 def hash_text(text):
     return hashlib.sha256(text.encode()).hexdigest()
 
 def is_private(question):
-    private_keywords = ["student id", "exam", "personal", "marks", "name"]
-    return any(k in question.lower() for k in private_keywords)
+    return any(k in question.lower() for k in PRIVATE_KEYWORDS)

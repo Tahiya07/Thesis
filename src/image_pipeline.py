@@ -1,6 +1,3 @@
-import numpy as np
-from PIL import Image
-
 from src.loaders.multimodal_loader import load_image_text
 from src.loaders.image_loader import load_image_caption
 

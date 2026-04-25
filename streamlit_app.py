@@ -40,6 +40,18 @@ if st.button("Ask"):
 
                     st.caption(f"Context Used: {data.get('context_used', False)}")
                     st.caption(f"Retrieval Score: {data.get('retrieval_score', 0.0)}")
+                    st.caption(f"Confidence: {data.get('confidence', 0.0):.3f}")
+
+                    chunks = data.get("chunks", [])
+                    if chunks:
+                        with st.expander("Retrieval Trace"):
+                            for i, chunk in enumerate(chunks, start=1):
+                                st.markdown(
+                                    f"**Chunk {i}** | score={chunk.get('score', 0.0):.3f} | "
+                                    f"semantic={chunk.get('semantic_score', 0.0):.3f} | "
+                                    f"privacy={chunk.get('privacy_score', 0.0):.3f}"
+                                )
+                                st.write(chunk.get("text", ""))
 
                 elif "error" in data:
                     st.error(data["error"])

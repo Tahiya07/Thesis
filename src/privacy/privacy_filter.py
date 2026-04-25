@@ -3,9 +3,11 @@
 class PrivacyFilter:
     def __init__(self):
         self.block_keywords = [
-            "student id", "password", "marks",
-            "exam sheet", "answer script",
-            "confidential", "grade"
+            "student id", "id number", "registration",
+            "password", "credential",
+            "marks", "grade", "score",
+            "exam", "exam sheet", "answer script",
+            "confidential"
         ]
 
     def risk_score(self, text: str) -> float:

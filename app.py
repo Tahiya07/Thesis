@@ -1,80 +1,51 @@
-from src.llm import load_rag_model
-from src.rag_engine import RAGEngine
+from scripts.run_system import AcademicSystem
 from src.summarizer import summarize
-from src.bloom import classify_bloom
 
 
-# =========================
-# INIT SYSTEM
-# =========================
+system = AcademicSystem("models/qwen.gguf")
 
-llm = load_rag_model("models/qwen.gguf")
-rag = RAGEngine()
-
-
-# =========================
-# CLI LOOP
-# =========================
 
 while True:
     print("\n===== Academic Assistant =====")
     print("1. Load PDF")
     print("2. Load Website")
-    print("3. Ask Question (RAG)")
-    print("4. Summarize Text")
-    print("5. Bloom Classification")
+    print("3. Load Image")
+    print("4. Ask Question")
+    print("5. Summarize Text")
     print("6. Exit")
 
-    choice = input("Choose: ")
+    choice = input("Choose: ").strip()
 
-    # -------------------------
-    # PDF ingestion
-    # -------------------------
     if choice == "1":
-        path = input("Enter PDF path: ")
-        rag.build_from_pdf(path)
-        print("✅ PDF indexed successfully!")
+        path = input("Enter PDF path: ").strip()
+        system.add_pdf(path)
+        print("Indexed PDF into the knowledge base.")
 
-    # -------------------------
-    # Website ingestion
-    # -------------------------
     elif choice == "2":
-        url = input("Enter URL: ")
-        rag.build_from_url(url)
-        print("✅ Website indexed successfully!")
+        url = input("Enter URL: ").strip()
+        system.add_url(url)
+        print("Indexed webpage into the knowledge base.")
 
-    # -------------------------
-    # RAG QA
-    # -------------------------
     elif choice == "3":
-        q = input("Question: ")
+        path = input("Enter image path: ").strip()
+        system.add_image(path)
+        print("Indexed image content into the knowledge base.")
 
-        result = rag.ask(llm, q, bloom_classifier=classify_bloom)
-
+    elif choice == "4":
+        question = input("Question: ").strip()
+        result = system.ask(question)
         print("\n===== ANSWER =====\n")
         print(result["answer"])
-        print("\nBloom Level:", result["bloom_level"])
-        print("Used RAG:", result["used_rag"])
+        print(f"\nContext Used: {result['context_used']}")
+        print(f"Confidence: {result['confidence']:.3f}")
+        print(f"Uncertain: {result['uncertain']}")
 
-    # -------------------------
-    # Summarization (manual test tool)
-    # -------------------------
-    elif choice == "4":
-        t = input("Enter text: ")
-        print("\nSummary:")
-        print(summarize(llm, t))
-
-    # -------------------------
-    # Bloom classification only
-    # -------------------------
     elif choice == "5":
-        q = input("Enter question: ")
-        print("\nBloom Level:")
-        print(classify_bloom(q))
+        text = input("Enter text: ").strip()
+        llm = system.get_llm()
+        print("\nSummary:")
+        print(summarize(llm, text))
 
-    # -------------------------
-    # Exit
-    # -------------------------
     elif choice == "6":
         print("Exiting...")
         break
