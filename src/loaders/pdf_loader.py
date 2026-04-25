@@ -1,12 +1,25 @@
-from pypdf import PdfReader
-
 def load_pdf_text(path):
-    reader = PdfReader(path)
-    text = ""
+    try:
+        from pypdf import PdfReader
 
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
+        reader = PdfReader(path)
+        text = ""
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+        return text
+    except Exception:
+        pass
 
-    return text
+    try:
+        import fitz
+
+        text = ""
+        doc = fitz.open(path)
+        for page in doc:
+            text += page.get_text() + "\n"
+        doc.close()
+        return text
+    except Exception:
+        return ""

@@ -105,6 +105,9 @@ class UnifiedEvaluator:
     def uncertainty(self, flag):
         return 1.0 if flag else 0.0
 
+    def rejection(self, flag):
+        return 1.0 if flag else 0.0
+
     # =====================================================
     # SINGLE SAMPLE EVAL
     # =====================================================
@@ -144,10 +147,14 @@ class UnifiedEvaluator:
 
             # uncertainty
             "uncertainty": self.uncertainty(result.get("uncertain", False)),
+            "rejection": self.rejection(result.get("rejected", False)),
             "confidence": float(result.get("confidence", 0.0)),
+            "bloom_confidence": float(result.get("bloom_confidence", 0.0)),
+            "bloom_uncertainty": float(result.get("bloom_uncertainty", 0.0)),
 
             # system flags
             "context_used": result.get("context_used", False),
+            "rejected": result.get("rejected", False),
             "chunks": chunks
         }
 
@@ -254,5 +261,8 @@ class UnifiedEvaluator:
             "mean_chunk_privacy": mean([r["mean_chunk_privacy"] for r in results]),
             "privacy_leakage": mean([r["privacy_leakage"] for r in results]),
             "uncertainty": mean([r["uncertainty"] for r in results]),
-            "confidence": mean([r["confidence"] for r in results])
+            "rejection": mean([r["rejection"] for r in results]),
+            "confidence": mean([r["confidence"] for r in results]),
+            "bloom_confidence": mean([r["bloom_confidence"] for r in results]),
+            "bloom_uncertainty": mean([r["bloom_uncertainty"] for r in results])
         }

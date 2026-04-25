@@ -20,8 +20,6 @@ class BloomLDL:
         self.model = None
         self.is_trained = False
         self.validation_accuracy = None
-
-        # CPU-friendly heuristic fallback when no trained model exists.
         self.patterns = {
             "Remember": ["define", "list", "what is", "who is", "when"],
             "Understand": ["explain", "describe", "summarize"],
@@ -30,7 +28,6 @@ class BloomLDL:
             "Evaluate": ["evaluate", "critique", "assess", "justify"],
             "Create": ["design", "propose", "develop", "formulate"]
         }
-
         self._load()
 
     def _load(self):
@@ -105,15 +102,7 @@ class BloomLDL:
             return 0.0
         return float(max(dist.values()))
 
-    def reject(
-        self,
-        dist: dict,
-        confidence_threshold=0.40,
-        uncertainty_threshold=0.80
-    ):
+    def reject(self, dist: dict, confidence_threshold=0.40, uncertainty_threshold=0.80):
         confidence = self.confidence(dist)
         uncertainty = self.uncertainty(dist)
-        return bool(
-            confidence < confidence_threshold or
-            uncertainty > uncertainty_threshold
-        )
+        return bool(confidence < confidence_threshold or uncertainty > uncertainty_threshold)

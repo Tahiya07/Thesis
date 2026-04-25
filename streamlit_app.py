@@ -41,6 +41,13 @@ if st.button("Ask"):
                     st.caption(f"Context Used: {data.get('context_used', False)}")
                     st.caption(f"Retrieval Score: {data.get('retrieval_score', 0.0)}")
                     st.caption(f"Confidence: {data.get('confidence', 0.0):.3f}")
+                    st.caption(f"Rejected: {data.get('rejected', False)}")
+                    st.caption(f"Bloom Level: {data.get('bloom_level', 'N/A')}")
+                    st.caption(f"Bloom Mode: {data.get('bloom_mode', 'N/A')}")
+                    st.caption(f"Bloom Uncertainty: {data.get('bloom_uncertainty', 0.0):.3f}")
+
+                    if data.get("rejection_reasons"):
+                        st.warning("Rejection reasons: " + ", ".join(data["rejection_reasons"]))
 
                     chunks = data.get("chunks", [])
                     if chunks:

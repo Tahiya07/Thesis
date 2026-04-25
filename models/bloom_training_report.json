@@ -1,0 +1,55 @@
+{
+  "Analyze": {
+    "precision": 0.9245283018867925,
+    "recall": 0.8032786885245902,
+    "f1-score": 0.8596491228070176,
+    "support": 61.0
+  },
+  "Apply": {
+    "precision": 0.6885245901639344,
+    "recall": 0.6666666666666666,
+    "f1-score": 0.6774193548387096,
+    "support": 63.0
+  },
+  "Create": {
+    "precision": 0.7741935483870968,
+    "recall": 0.8571428571428571,
+    "f1-score": 0.8135593220338984,
+    "support": 56.0
+  },
+  "Evaluate": {
+    "precision": 0.8115942028985508,
+    "recall": 0.875,
+    "f1-score": 0.8421052631578947,
+    "support": 64.0
+  },
+  "Remember": {
+    "precision": 0.803030303030303,
+    "recall": 0.7681159420289855,
+    "f1-score": 0.7851851851851852,
+    "support": 69.0
+  },
+  "Understand": {
+    "precision": 0.8350515463917526,
+    "recall": 0.84375,
+    "f1-score": 0.8393782383419689,
+    "support": 192.0
+  },
+  "accuracy": 0.8118811881188119,
+  "macro avg": {
+    "precision": 0.8061537487930716,
+    "recall": 0.8023256923938499,
+    "f1-score": 0.8028827477274457,
+    "support": 505.0
+  },
+  "weighted avg": {
+    "precision": 0.8134834279344837,
+    "recall": 0.8118811881188119,
+    "f1-score": 0.8116999490326855,
+    "support": 505.0
+  },
+  "validation_accuracy": 0.8118811881188119,
+  "num_train": 2017,
+  "num_val": 505,
+  "source_dataset": "models/external_datasets/exam_combined_dataset.csv"
+}

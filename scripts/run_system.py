@@ -29,6 +29,42 @@ class AcademicSystem:
 
         confidence = float(np.mean([c["score"] for c in chunks])) if chunks else 0.0
         uncertain = confidence < 0.35
+        mean_chunk_privacy = float(np.mean([c.get("privacy_score", 0.0) for c in chunks])) if chunks else 0.0
+
+        bloom_level, bloom_dist = self.rag.ldl.predict(question)
+        bloom_uncertainty = self.rag.ldl.uncertainty(bloom_dist)
+        bloom_confidence = self.rag.ldl.confidence(bloom_dist)
+        bloom_mode = "trained" if self.rag.ldl.is_trained else "heuristic"
+
+        rejection_reasons = []
+        if confidence < 0.35:
+            rejection_reasons.append("low_retrieval_confidence")
+        if self.rag.use_privacy and mean_chunk_privacy > 0.45:
+            rejection_reasons.append("high_privacy_risk")
+        if bloom_uncertainty > 0.85 and confidence < 0.50:
+            rejection_reasons.append("high_query_uncertainty")
+
+        rejected = bool(rejection_reasons) if self.rag.use_rejection else False
+
+        if rejected:
+            return {
+                "answer": (
+                    "I cannot answer confidently from the available non-sensitive documents. "
+                    "Please provide more specific or safer supporting material."
+                ),
+                "context_used": used_rag,
+                "retrieval_score": min(len(chunks) / 3, 1.0),
+                "confidence": confidence,
+                "uncertain": True,
+                "rejected": True,
+                "rejection_reasons": rejection_reasons,
+                "mean_chunk_privacy": mean_chunk_privacy,
+                "bloom_level": bloom_level,
+                "bloom_mode": bloom_mode,
+                "bloom_confidence": bloom_confidence,
+                "bloom_uncertainty": bloom_uncertainty,
+                "chunks": chunks
+            }
 
         llm = self.get_llm()
 
@@ -46,6 +82,13 @@ class AcademicSystem:
             "retrieval_score": min(len(chunks) / 3, 1.0),
             "confidence": confidence,
             "uncertain": uncertain,
+            "rejected": False,
+            "rejection_reasons": [],
+            "mean_chunk_privacy": mean_chunk_privacy,
+            "bloom_level": bloom_level,
+            "bloom_mode": bloom_mode,
+            "bloom_confidence": bloom_confidence,
+            "bloom_uncertainty": bloom_uncertainty,
             "chunks": chunks
         }
 

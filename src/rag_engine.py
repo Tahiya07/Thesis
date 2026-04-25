@@ -6,7 +6,7 @@ from src.chunker import chunk_text
 from src.embed import embed
 from src.privacy.privacy_model import PrivacyClassifier
 from src.privacy.privacy import is_private
-from src.ldl.bloom_ldl import BloomLDL
+from src.bloom_ldl_runtime import BloomLDL
 
 
 class RAGEngine:
@@ -32,6 +32,7 @@ class RAGEngine:
         self.use_learning_privacy = privacy_model is not None
         self.use_privacy = True
         self.use_diversity = True
+        self.use_rejection = True
 
         # =========================
         # LDL (BLOOM TAXONOMY MODULE)
@@ -250,6 +251,7 @@ class RAGEngine:
         self,
         use_privacy=None,
         use_diversity=None,
+        use_rejection=None,
         use_learning_privacy=None,
         lambda_privacy=None
     ):
@@ -259,6 +261,9 @@ class RAGEngine:
 
         if use_diversity is not None:
             self.use_diversity = use_diversity
+
+        if use_rejection is not None:
+            self.use_rejection = use_rejection
 
         if use_learning_privacy is not None:
             self.use_learning_privacy = use_learning_privacy
