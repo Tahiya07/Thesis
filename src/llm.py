@@ -1,17 +1,14 @@
-# src/llm.py
-
 import time
 from llama_cpp import Llama
 
 
-# =========================================================
-# 1. LOAD QWEN GGUF (ONLY MODEL YOU NEED)
-# =========================================================
-
+# =====================================================
+# MODEL LOADER
+# =====================================================
 def load_rag_model(path: str):
     return Llama(
         model_path=path,
-        n_ctx=2084,
+        n_ctx=4096,
         n_threads=8,
         use_mmap=True,
         use_mlock=False,
@@ -19,88 +16,78 @@ def load_rag_model(path: str):
     )
 
 
-# =========================================================
-# 2. BLOOM CLASSIFICATION (ZERO-SHOT - IMPORTANT FIX)
-# =========================================================
-
-def classify_bloom(llm, question: str):
-
-    prompt = f"""
-You are a strict academic classifier.
-
-Classify the question into ONE Bloom level:
-
-Remember, Understand, Apply, Analyze, Evaluate, Create
-
-Rules:
-- Output ONLY the label
-- No explanation
-
-Question:
-{question}
-
-Answer:
-"""
-
-    response = llm.create_chat_completion(
-        messages=[
-            {"role": "system", "content": "You are a classification system."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.0,
-        max_tokens=10
-    )
-
-    text = response["choices"][0]["message"]["content"]
-
-    for label in ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]:
-        if label.lower() in text.lower():
-            return label
-
-    return "Understand"
+# =====================================================
+# CONTEXT SAFE TRUNCATION (IMPORTANT FIX)
+# =====================================================
+def _truncate(text: str, max_chars: int = 2500):
+    if not text:
+        return ""
+    return text[:max_chars]
 
 
-# =========================================================
-# 3. GENERATION WRAPPER
-# =========================================================
+# =====================================================
+# GENERATION FUNCTION (FIXED)
+# =====================================================
+def generate(llm, prompt, context=None, temperature=0.2, max_tokens=256):
 
-def generate(llm, prompt, context=None, temperature=0.2, max_tokens=512):
+    context = _truncate(context, 2000)
+
+    # -------------------------
+    # SAFE PROMPT BUILDING
+    # -------------------------
     if context:
-        final_prompt = f"""
-    You are a precise academic assistant.
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a strict academic assistant. "
+                    "Answer ONLY using provided context. "
+                    "If the answer is not in context, say 'Not found in documents'."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"""
+CONTEXT:
+{context}
 
-    RULES:
-    - OCR text is more reliable than captions
-    - Image captions may be incorrect
-    - If uncertain, explicitly say "uncertain"
-    - Do NOT hallucinate
+QUESTION:
+{prompt}
 
-    Context:
-    {context}
-
-    Question:
-    {prompt}
-
-    Answer:
-    """
+ANSWER:
+"""
+            }
+        ]
     else:
-        final_prompt = prompt
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a strict academic assistant."
+            },
+            {
+                "role": "user",
+                "content": f"""
+QUESTION:
+{prompt}
 
+ANSWER:
+Not found in documents.
+"""
+            }
+        ]
+
+    # -------------------------
+    # GENERATION
+    # -------------------------
     start = time.time()
 
     response = llm.create_chat_completion(
-        messages=[
-            {"role": "system", "content": "You are a precise academic assistant."},
-            {"role": "user", "content": final_prompt}
-        ],
+        messages=messages,
         temperature=temperature,
         max_tokens=max_tokens
     )
 
-    end = time.time()
-
     return {
         "response": response["choices"][0]["message"]["content"],
-        "latency": end - start,
-        "tokens": len(response["choices"][0]["message"]["content"].split())
+        "latency": time.time() - start
     }

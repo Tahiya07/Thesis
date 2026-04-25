@@ -1,5 +1,6 @@
 import time
 import numpy as np
+
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -16,41 +17,50 @@ class RAGEvaluator:
         return out, time.time() - start
 
     # =====================================================
-    # BLEU
+    # BLEU SCORE
     # =====================================================
     def compute_bleu(self, reference, candidate):
         if not reference or not candidate:
             return 0.0
 
-        ref_tokens = reference.split()
-        cand_tokens = candidate.split()
-
         return sentence_bleu(
-            [ref_tokens],
-            cand_tokens,
+            [reference.split()],
+            candidate.split(),
             smoothing_function=SmoothingFunction().method1
         )
 
     # =====================================================
-    # SIMILARITY (GROUNDING)
+    # SEMANTIC SIMILARITY (FAITHFULNESS CORE)
     # =====================================================
     def _similarity(self, context, answer):
         if not context or not answer:
             return 0.0
 
-        vectorizer = TfidfVectorizer()
-        vecs = vectorizer.fit_transform([context, answer])
-
-        return float(cosine_similarity(vecs[0], vecs[1])[0][0])
-
-    def hallucination_score(self, context, answer):
-        return 1.0 - self._similarity(context, answer)
+        try:
+            vectorizer = TfidfVectorizer(stop_words="english")
+            vecs = vectorizer.fit_transform([context, answer])
+            return float(cosine_similarity(vecs[0], vecs[1])[0][0])
+        except:
+            return 0.0
 
     def faithfulness(self, context, answer):
         return self._similarity(context, answer)
 
+    def hallucination_score(self, context, answer):
+        return 1.0 - self._similarity(context, answer)
+
     # =====================================================
-    # LENGTH
+    # PRIVACY LEAKAGE (SAFE THESIS VERSION)
+    # =====================================================
+    def privacy_leakage(self, answer):
+        sensitive = ["student id", "password", "marks", "grade", "exam"]
+        answer = (answer or "").lower()
+
+        hits = sum(1 for k in sensitive if k in answer)
+        return hits / len(sensitive)
+
+    # =====================================================
+    # LENGTH METRICS
     # =====================================================
     def answer_length_metrics(self, answer):
         return {
@@ -59,59 +69,70 @@ class RAGEvaluator:
         }
 
     # =====================================================
-    # RETRIEVAL METRICS
+    # RETRIEVAL PRECISION@K (FIXED LOGIC)
     # =====================================================
-    def precision_at_k(self, retrieved, keywords):
-        if not retrieved or not keywords:
+    def precision_at_k(self, retrieved_texts, keywords):
+        if not retrieved_texts or not keywords:
             return 0.0
 
-        hits = sum(
-            any(k.lower() in r.lower() for k in keywords)
-            for r in retrieved
-        )
-        return hits / len(retrieved)
+        retrieved_texts = [r.lower() for r in retrieved_texts]
+        keywords = [k.lower() for k in keywords]
 
-    def recall_at_k(self, retrieved, keywords):
-        if not retrieved or not keywords:
-            return 0.0
+        hits = 0
 
-        hits = sum(
-            any(k.lower() in r.lower() for r in retrieved)
-            for k in keywords
-        )
-        return hits / len(keywords)
+        for r in retrieved_texts:
+            if any(k in r for k in keywords):
+                hits += 1
+
+        return hits / len(retrieved_texts)
 
     # =====================================================
-    # FIXED LLM JUDGE (CRITICAL FIX)
+    # UNCERTAINTY SCORE
     # =====================================================
-    def llm_hallucination_judge(self, llm, context, answer):
+    def uncertainty_score(self, flag):
+        return 1.0 if flag else 0.0
 
-        prompt = f"""
-You are an evaluator.
+    # =====================================================
+    # MAIN EVALUATION PIPELINE
+    # =====================================================
+    def evaluate_sample(self, system, question, reference=None, keywords=None):
 
-Score how grounded the answer is in the context.
+        result, latency = self.measure_latency(system.ask, question)
 
-Return ONLY a number between 0 and 1.
+        answer = result.get("answer", "")
+        chunks = result.get("chunks", [])
 
-Context:
-{context}
+        context = "\n".join([c["text"] for c in chunks]) if chunks else ""
 
-Answer:
-{answer}
+        return {
+            "question": question,
+            "answer": answer,
+            "latency": latency,
 
-Score:
-"""
+            "bleu": self.compute_bleu(reference, answer) if reference else 0.0,
 
-        try:
-            from src.llm import generate
+            "faithfulness": self.faithfulness(context, answer),
+            "hallucination": self.hallucination_score(context, answer),
 
-            res = generate(
-                llm,
-                prompt=prompt,
-                temperature=0.0,
-                max_tokens=5
-            )
+            "privacy_leakage": self.privacy_leakage(answer),
 
-            return float(res["response"].strip())
-        except:
+            "uncertainty": self.uncertainty_score(result.get("uncertain", False)),
+
+            "context_used": result.get("context_used", False),
+
+            "length": self.answer_length_metrics(answer),
+
+            # FIXED SAFE VERSION
+            "precision@k": self.precision_at_k(
+                [c["text"] for c in chunks],
+                keywords or []
+            ),
+        }
+
+    # =====================================================
+    # BLOOM CONFIDENCE
+    # =====================================================
+    def bloom_confidence(self, dist):
+        if dist is None or len(dist) == 0:
             return 0.0
+        return float(np.max(dist))

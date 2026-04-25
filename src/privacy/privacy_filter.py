@@ -3,13 +3,17 @@
 class PrivacyFilter:
     def __init__(self):
         self.block_keywords = [
-            "student id", "password", "marks", "exam sheet", "private"
+            "student id", "password", "marks",
+            "exam sheet", "answer script",
+            "confidential", "grade"
         ]
 
-    def classify(self, text: str):
-        text_lower = text.lower()
+    def risk_score(self, text: str) -> float:
+        text = text.lower()
+        score = 0
 
-        if any(k in text_lower for k in self.block_keywords):
-            return "PRIVATE"
+        for k in self.block_keywords:
+            if k in text:
+                score += 1
 
-        return "PUBLIC"
+        return min(score / len(self.block_keywords), 1.0)

@@ -1,240 +1,157 @@
-import os
-import time
-import pickle
 import numpy as np
 import faiss
 
 from src.chunker import chunk_text
 from src.embed import embed
-from src.loaders.pdf_loader import load_pdf_text
-from src.loaders.web_loader import load_webpage
+from src.privacy.privacy_filter import PrivacyFilter
+from src.privacy.privacy import is_private
 
 
-# =========================================================
-# BM25 (FIXED LIGHTWEIGHT VERSION)
-# =========================================================
-class BM25:
-    def __init__(self):
-        self.docs = []
-        self.doc_freq = {}
-
-    def add(self, docs):
-        self.docs.extend(docs)
-        self._recalc()
-
-    def _recalc(self):
-        self.doc_freq = {}
-
-        for doc in self.docs:
-            words = doc.lower().split()
-            unique_words = set(words)
-
-            for w in unique_words:
-                self.doc_freq[w] = self.doc_freq.get(w, 0) + 1
-
-    def score(self, query, doc):
-        q_words = query.lower().split()
-        d_words = doc.lower().split()
-
-        doc_len = len(d_words)
-        score = 0.0
-
-        for w in q_words:
-            if w in d_words:
-                tf = d_words.count(w)
-                idf = np.log((len(self.docs) + 1) / (1 + self.doc_freq.get(w, 0)))
-                score += (tf * idf) / (doc_len + 1e-8)
-
-        return score
-
-
-# =========================================================
-# RAG ENGINE (FIXED + STABLE HYBRID RETRIEVAL)
-# =========================================================
 class RAGEngine:
-    def __init__(self, persist_path="rag_store.pkl"):
 
-        self.persist_path = persist_path
-
+    def __init__(self):
         self.chunks = []
         self.embeddings = None
         self.index = None
-        self.meta = []
-
-        self.bm25 = BM25()
-
-        self.stats = {
-            "queries": 0,
-            "retrieval_hits": 0,
-            "avg_latency": 0.0,
-            "total_latency": 0.0
-        }
-
-        self._load()
+        self.privacy_filter = PrivacyFilter()
 
     # =====================================================
-    # INGESTION
+    def _normalize(self, x):
+        return x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8)
+
     # =====================================================
-    def add_pdf(self, path):
-        text = load_pdf_text(path)
-        self._add_text(text, "pdf")
+    # ADD TEXT
+    # =====================================================
+    def add_text(self, text: str):
 
-    def add_url(self, url):
-        text = load_webpage(url)
-        self._add_text(text, "url")
-
-    def add_text(self, text, source="manual"):
-        self._add_text(text, source)
-
-    def _add_text(self, text, source="unknown"):
-
-        chunks = chunk_text(text)
-        if not chunks:
+        if not text or len(text.strip()) < 150:
+            print("⚠️ Skipping small text")
             return
 
-        self.chunks.extend(chunks)
-        self.meta.extend([source] * len(chunks))
+        chunks = chunk_text(text)
 
-        self.bm25.add(chunks)
+        seen = set()
+        filtered = []
 
-        new_emb = np.array(embed(chunks)).astype("float32")
+        for c in chunks:
+            c = c.strip()
 
-        # =========================
-        # FIX 1: NORMALIZE EMBEDDINGS (CRITICAL)
-        # =========================
-        new_emb = new_emb / (np.linalg.norm(new_emb, axis=1, keepdims=True) + 1e-8)
+            if len(c) < 40:
+                continue
+
+            key = c[:100]
+
+            if key in seen:
+                continue
+
+            seen.add(key)
+            filtered.append(c)
+
+        if not filtered:
+            print("⚠️ No valid chunks after filtering")
+            return
+
+        emb = np.array(embed(filtered), dtype=np.float32)
+        emb = self._normalize(emb)
+
+        self.chunks.extend(filtered)
 
         if self.embeddings is None:
-            self.embeddings = new_emb
+            self.embeddings = emb
         else:
-            self.embeddings = np.vstack([self.embeddings, new_emb])
+            self.embeddings = np.vstack([self.embeddings, emb])
 
         self._build_index()
-        self._save()
 
-    # =====================================================
-    # INDEX BUILDING
+        print(f"✅ Indexed {len(filtered)} chunks")
+
     # =====================================================
     def _build_index(self):
 
-        if self.embeddings is None or len(self.chunks) == 0:
-            self.index = None
+        if self.embeddings is None or len(self.embeddings) == 0:
             return
 
         dim = self.embeddings.shape[1]
 
         self.index = faiss.IndexFlatIP(dim)
-        self.index.add(self.embeddings)
+        self.index.add(self.embeddings.astype("float32"))
 
     # =====================================================
-    # RETRIEVAL (FIXED HYBRID SCORING)
+    # LIGHTWEIGHT SEMANTIC SIMILARITY
     # =====================================================
-    def retrieve(self, query, k=5):
+    def _cosine(self, a, b):
+        return np.dot(a, b) / (
+            (np.linalg.norm(a) * np.linalg.norm(b)) + 1e-8
+        )
+
+    # =====================================================
+    # RETRIEVE (FINAL OPTIMIZED)
+    # =====================================================
+    def retrieve(self, query, k=3, lambda_privacy=0.3):
 
         if self.index is None:
             return []
 
-        start = time.time()
+        q = np.array(embed([query]), dtype=np.float32)
+        q = self._normalize(q)
 
-        q_vec = np.array(embed([query])).astype("float32")
-
-        # =========================
-        # FIX 2: NORMALIZE QUERY EMBEDDING
-        # =========================
-        q_vec = q_vec / (np.linalg.norm(q_vec, axis=1, keepdims=True) + 1e-8)
-
-        scores, idxs = self.index.search(q_vec, k * 3)
+        scores, idxs = self.index.search(q, k * 10)
 
         results = []
+        selected_embeddings = []
+
+        query_sensitive = is_private(query)
 
         for i, idx in enumerate(idxs[0]):
+
             if idx >= len(self.chunks):
                 continue
 
             chunk = self.chunks[idx]
+            chunk_emb = self.embeddings[idx]
 
-            faiss_score = float(scores[0][i])
-            bm25_score = self.bm25.score(query, chunk)
+            # -----------------------------
+            # SEMANTIC SCORE (0–1)
+            # -----------------------------
+            semantic = float(scores[0][i])
+            semantic = max(0.0, min(1.0, (semantic + 1) / 2))
 
-            results.append((faiss_score, bm25_score, chunk))
+            # -----------------------------
+            # PRIVACY PENALTY
+            # -----------------------------
+            privacy = self.privacy_filter.risk_score(chunk)
 
-        if not results:
-            return []
+            if query_sensitive:
+                privacy *= 1.2
 
-        # =========================
-        # FIX 3: NORMALIZE SCORES BEFORE FUSION
-        # =========================
-        faiss_scores = np.array([r[0] for r in results])
-        bm25_scores = np.array([r[1] for r in results])
+            final_score = semantic - lambda_privacy * privacy
 
-        faiss_scores = (faiss_scores - faiss_scores.min()) / (faiss_scores.ptp() + 1e-8)
-        bm25_scores = (bm25_scores - bm25_scores.min()) / (bm25_scores.ptp() + 1e-8)
+            if final_score < 0.30:
+                continue
 
-        final_results = []
+            # -----------------------------
+            # 🔥 SEMANTIC DEDUP (KEY UPGRADE)
+            # -----------------------------
+            is_duplicate = False
 
-        for i in range(len(results)):
-            score = 0.7 * faiss_scores[i] + 0.3 * bm25_scores[i]
-            final_results.append((score, results[i][2]))
+            for prev_emb in selected_embeddings:
+                sim = self._cosine(chunk_emb, prev_emb)
 
-        final_results.sort(reverse=True, key=lambda x: x[0])
+                if sim > 0.85:
+                    is_duplicate = True
+                    break
 
-        latency = time.time() - start
+            if is_duplicate:
+                continue
 
-        # =========================
-        # STATS
-        # =========================
-        self.stats["queries"] += 1
-        self.stats["total_latency"] += latency
-        self.stats["avg_latency"] = self.stats["total_latency"] / self.stats["queries"]
+            selected_embeddings.append(chunk_emb)
 
-        if len(final_results) > 0 and final_results[0][0] > 0.3:
-            self.stats["retrieval_hits"] += 1
+            results.append({
+                "text": chunk,
+                "score": float(final_score)
+            })
 
-        return [r[1] for r in final_results[:k]]
+            if len(results) >= k:
+                break
 
-    # =====================================================
-    # STATS
-    # =====================================================
-    def get_stats(self):
-        return {
-            "total_queries": self.stats["queries"],
-            "hit_rate": self.stats["retrieval_hits"] / max(1, self.stats["queries"]),
-            "avg_latency_sec": self.stats["avg_latency"],
-            "chunks": len(self.chunks)
-        }
-
-    # =====================================================
-    # PERSISTENCE
-    # =====================================================
-    def _save(self):
-        try:
-            with open(self.persist_path, "wb") as f:
-                pickle.dump({
-                    "chunks": self.chunks,
-                    "embeddings": self.embeddings,
-                    "meta": self.meta,
-                    "stats": self.stats
-                }, f)
-        except:
-            pass
-
-    def _load(self):
-        if not os.path.exists(self.persist_path):
-            return
-
-        try:
-            with open(self.persist_path, "rb") as f:
-                data = pickle.load(f)
-
-            self.chunks = data.get("chunks", [])
-            self.embeddings = data.get("embeddings", None)
-            self.meta = data.get("meta", [])
-            self.stats = data.get("stats", self.stats)
-
-            if self.embeddings is not None:
-                self._build_index()
-
-            self.bm25.add(self.chunks)
-
-        except:
-            pass
+        return results

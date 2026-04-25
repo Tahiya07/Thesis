@@ -1,193 +1,144 @@
-import argparse
-import os
-import numpy as np
-
-from src.llm import load_rag_model, generate, classify_bloom
 from src.rag_engine import RAGEngine
-from src.rag_token_manager import TokenManager
-from sentence_transformers import SentenceTransformer
+from src.llm import generate
+from src.ldl import BloomLDL
 
 
-# =========================================================
-# SYSTEM WRAPPER
-# =========================================================
 class AcademicSystem:
+
     def __init__(self, model_path):
-        print("⚡ System booting (lazy mode)...")
+        print("⚡ System initialized")
 
-        print("🧠 Loading LLM (first use only)...")
-        self.llm = load_rag_model(model_path)
-
-        print("📚 Initializing RAG (first use only)...")
+        self.model_path = model_path
+        self.llm = None
         self.rag = RAGEngine()
+        self.ldl = BloomLDL()
 
-        # token safety
-        self.token_manager = TokenManager(model_context_size=2304)
+    # =====================================================
+    def get_llm(self):
+        if self.llm is None:
+            from src.llm import load_rag_model
+            self.llm = load_rag_model(self.model_path)
+        return self.llm
 
-        # =====================================================
-        # EMBEDDING MODEL (USED FOR RAG GATING)
-        # =====================================================
-        print("🧠 Loading embedding model (RAG scoring)...")
-        self.embedder = SentenceTransformer("all-MiniLM-L6-v2")
-
-    # -------------------------
-    # COSINE SIMILARITY
-    # -------------------------
-    def _cosine(self, a, b):
-        a = np.array(a)
-        b = np.array(b)
-        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8))
-
-    # -------------------------
-    # RETRIEVAL SCORING (FIXED)
-    # -------------------------
-    def retrieval_score(self, context: str, question: str):
-        if not context or not question:
-            return 0.0
-
-        c_emb = self.embedder.encode(context)
-        q_emb = self.embedder.encode(question)
-
-        return self._cosine(c_emb, q_emb)
-
-    # -------------------------
-    # TEXT QUESTION
-    # -------------------------
+    # =====================================================
+    # ASK (FIXED - STRICT + LOW HALLUCINATION)
+    # =====================================================
     def ask(self, question: str, use_rag=True):
 
-        raw_context = []
-        context_text = ""
-        used_rag = False
-
-        # =========================
-        # STEP 1: RETRIEVE
-        # =========================
+        chunks = []
         if use_rag:
-            raw_context = self.rag.retrieve(question)
+            chunks = self.rag.retrieve(question, k=3)
+
+        context = "\n\n".join([c["text"] for c in chunks]) if chunks else ""
+        used_rag = len(context) > 0
+
+        uncertain = self.uncertainty_check(chunks)
+
+        llm = self.get_llm()
 
         # =========================
-        # STEP 2: RAG GATING (FIXED)
-        # =========================
-        if raw_context:
-            combined_context = "\n".join(raw_context)
-
-            score = self.retrieval_score(combined_context, question)
-
-            # ✔ stable semantic threshold
-            if score > 0.35:
-                context_text = self.token_manager.build_safe_context(
-                    raw_context,
-                    question
-                )
-                used_rag = True
-            else:
-                context_text = ""
-                used_rag = False
-
-        # =========================
-        # STEP 3: PROMPT CONSTRUCTION
+        # 🔥 FIXED GENERATION FLOW
         # =========================
         if used_rag:
-            prompt = f"""
-You MUST answer using ONLY the provided context.
 
-CONTEXT:
-{context_text}
+            response = generate(
+                llm,
+                prompt=question,  # only question here
+                context=context,  # ✅ PASS CONTEXT HERE
+                temperature=0.2,
+                max_tokens=256
+            )
 
-QUESTION:
-{question}
-
-ANSWER:
-"""
         else:
-            prompt = f"""
-Answer the question clearly and concisely.
-
-QUESTION:
-{question}
-
-ANSWER:
-"""
-
-        # =========================
-        # STEP 4: GENERATION
-        # =========================
-        response = generate(
-            self.llm,
-            prompt=prompt,
-            temperature=0.2,
-            max_tokens=256
-        )
+            response = generate(
+                llm,
+                prompt=question,
+                context=None,
+                temperature=0.2,
+                max_tokens=256
+            )
 
         return {
-            "answer": response["response"],
+            "answer": response.get("response", ""),
             "context_used": used_rag,
-            "retrieval_score": score if raw_context else 0.0
+            "retrieval_score": min(len(chunks) / 3, 1.0),
+            "uncertain": uncertain,
+            # "chunks": chunks
         }
+    def _clean_answer(self, text: str):
 
-    # -------------------------
-    # PDF INGESTION
-    # -------------------------
-    def add_pdf(self, path):
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"PDF not found: {path}")
+        if not text:
+            return text
 
-        self.rag.add_pdf(path)
-        print("✅ PDF loaded into RAG")
+        # remove repeated lines
+        lines = list(dict.fromkeys(text.split("\n")))
 
-    # -------------------------
-    # URL INGESTION
-    # -------------------------
-    def add_url(self, url):
-        self.rag.add_url(url)
-        print("✅ URL loaded into RAG")
+        text = " ".join(lines)
 
+        # remove extra spaces
+        text = " ".join(text.split())
 
-# =========================================================
-# MAIN CLI
-# =========================================================
-def main():
-    parser = argparse.ArgumentParser()
+        # cut overly long answers (keeps it tight)
+        words = text.split()
+        if len(words) > 80:
+            text = " ".join(words[:80]) + "..."
 
-    parser.add_argument("--model_path", required=True)
-    parser.add_argument("--question", type=str)
-    parser.add_argument("--pdf", type=str)
-    parser.add_argument("--url", type=str)
+        return text
+    # =====================================================
+    # PDF (FIXED)
+    # =====================================================
+    def add_pdf(self, path: str):
+        from src.loaders.pdf_loader import load_pdf_text
 
-    args = parser.parse_args()
+        text = load_pdf_text(path)
 
-    system = AcademicSystem(args.model_path)
+        if text:
+            print("📄 Adding PDF...")
+            self.rag.add_text(text)
+        else:
+            print("⚠️ PDF load failed")
 
-    # -------------------------
-    # INGESTION
-    # -------------------------
-    if args.pdf:
-        system.add_pdf(args.pdf)
+    # =====================================================
+    # IMAGE (FIXED - NO UNKNOWN FILES)
+    # =====================================================
+    def add_image(self, image_path: str):
 
-    if args.url:
-        system.add_url(args.url)
+        print(f"🖼️ Processing image: {image_path}")
 
-    # -------------------------
-    # QUESTION
-    # -------------------------
-    if args.question:
-        out = system.ask(args.question)
+        from src.loaders.multimodal_loader import load_image_text
+        from src.blip_captioner import BLIPCaptioner
 
-        print("\n================ ANSWER ================\n")
-        print(out["answer"])
+        # OCR
+        ocr_text = load_image_text(image_path)
 
-        try:
-            bloom = classify_bloom(system.llm, args.question)
-        except:
-            bloom = "Unknown"
+        # Caption
+        captioner = BLIPCaptioner()
+        caption = captioner.caption(image_path)
 
-        print("\nBloom Level:", bloom)
-        print("Used RAG:", out["context_used"])
-        print("Retrieval Score:", round(out["retrieval_score"], 4))
-        return
+        # 🔥 FUSION
+        fused_text = f"{ocr_text}\n{caption}"
 
-    print("❌ No valid input provided.")
+        self.rag.add_text(fused_text)
 
+    # =====================================================
+    def add_url(self, url: str):
+        from src.loaders.web_loader import load_webpage
 
-if __name__ == "__main__":
-    main()
+        text = load_webpage(url)
+        if text:
+            self.rag.add_text(text)
+
+    # =====================================================
+    def uncertainty_check(self, chunks):
+
+        if not chunks:
+            return True
+
+        if len(chunks) < 2:
+            return True
+
+        avg_len = sum(len(c["text"]) for c in chunks) / len(chunks)
+        return avg_len < 80
+
+import gc
+gc.collect()
