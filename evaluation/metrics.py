@@ -108,10 +108,15 @@ class UnifiedEvaluator:
     def rejection(self, flag):
         return 1.0 if flag else 0.0
 
+    def bloom_accuracy(self, predicted, expected):
+        if not expected:
+            return None
+        return 1.0 if (predicted or "").strip().lower() == expected.strip().lower() else 0.0
+
     # =====================================================
     # SINGLE SAMPLE EVAL
     # =====================================================
-    def evaluate_sample(self, system, question, reference=None, keywords=None):
+    def evaluate_sample(self, system, question, reference=None, keywords=None, expected_bloom=None):
 
         result, latency = self.latency(system.ask, question)
 
@@ -149,6 +154,12 @@ class UnifiedEvaluator:
             "uncertainty": self.uncertainty(result.get("uncertain", False)),
             "rejection": self.rejection(result.get("rejected", False)),
             "confidence": float(result.get("confidence", 0.0)),
+            "bloom_level": result.get("bloom_level"),
+            "expected_bloom": expected_bloom,
+            "bloom_accuracy": self.bloom_accuracy(
+                result.get("bloom_level"),
+                expected_bloom
+            ),
             "bloom_confidence": float(result.get("bloom_confidence", 0.0)),
             "bloom_uncertainty": float(result.get("bloom_uncertainty", 0.0)),
 
@@ -210,7 +221,8 @@ class UnifiedEvaluator:
                         system,
                         item["question"],
                         item.get("reference"),
-                        item.get("keywords")
+                        item.get("keywords"),
+                        item.get("expected_bloom")
                     )
                 )
 
@@ -237,7 +249,8 @@ class UnifiedEvaluator:
                 system,
                 item["question"],
                 item.get("reference"),
-                item.get("keywords")
+                item.get("keywords"),
+                item.get("expected_bloom")
             )
 
             results.append(res)
@@ -263,6 +276,7 @@ class UnifiedEvaluator:
             "uncertainty": mean([r["uncertainty"] for r in results]),
             "rejection": mean([r["rejection"] for r in results]),
             "confidence": mean([r["confidence"] for r in results]),
+            "bloom_accuracy": mean([r["bloom_accuracy"] for r in results if r["bloom_accuracy"] is not None]),
             "bloom_confidence": mean([r["bloom_confidence"] for r in results]),
             "bloom_uncertainty": mean([r["bloom_uncertainty"] for r in results])
         }

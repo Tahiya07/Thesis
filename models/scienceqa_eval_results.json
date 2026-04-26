@@ -1,7 +1,7 @@
 {
   "num_samples": 40,
   "summary": {
-    "latency": 0.47868252396583555,
+    "latency": 2.6704143941402436,
     "answer_similarity": 0.008980297154386386,
     "faithfulness": 0.02709595253648369,
     "hallucination": 0.9729040474635162,
@@ -19,7 +19,7 @@
     {
       "question": "what kind of landscapes does the asp measure ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.04173851013183594,
+      "latency": 0.5466361045837402,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -39,7 +39,7 @@
     {
       "question": "what part of the ilp did tive summarizer have ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.02101922035217285,
+      "latency": 0.06181836128234863,
       "answer_similarity": 0.0,
       "faithfulness": 0.029512682704212326,
       "hallucination": 0.9704873172957876,
@@ -69,7 +69,7 @@
     {
       "question": "what kind of methods does a method have ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.020738840103149414,
+      "latency": 0.03891777992248535,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -89,7 +89,7 @@
     {
       "question": "what kind of inference are models models ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.028748512268066406,
+      "latency": 0.027467012405395508,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -109,7 +109,7 @@
     {
       "question": "what kind of bound on \u03b5 ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.034316301345825195,
+      "latency": 0.02806377410888672,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -129,7 +129,7 @@
     {
       "question": "what is the maximum solver comparable with ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.039334774017333984,
+      "latency": 0.025101184844970703,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -149,7 +149,7 @@
     {
       "question": "what are minimax symmetries validated ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.03050374984741211,
+      "latency": 0.028043508529663086,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -169,7 +169,7 @@
     {
       "question": "what can label distribution learning be associated to ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0275270938873291,
+      "latency": 0.03200554847717285,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -199,7 +199,7 @@
     {
       "question": "what have network representation emerged to represent every node in a vector format ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0018963813781738281,
+      "latency": 0.0016255378723144531,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -219,7 +219,7 @@
     {
       "question": "what is another term for partial sbds ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.019167184829711914,
+      "latency": 0.03082108497619629,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -239,7 +239,7 @@
     {
       "question": "what kind of map is needed to learn autonomously in a single fixed lighting condition ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0016591548919677734,
+      "latency": 0.0021708011627197266,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -259,7 +259,7 @@
     {
       "question": "according to effectively , what kind of issues does effectively use ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.035572052001953125,
+      "latency": 0.0315098762512207,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -279,7 +279,7 @@
     {
       "question": "what makes a translation from an important subset of lpmln to p-log ?",
       "answer": "A translation from an important subset of LPMLN to P-log preserves probabilistic functions defined by LPMLN programs and complements recent research by the authors of LPMLN. This work sheds light on the different ways to treat inconsistency in both languages.",
-      "latency": 14.03099274635315,
+      "latency": 46.00065350532532,
       "answer_similarity": 0.0,
       "faithfulness": 0.6576659699287493,
       "hallucination": 0.34233403007125074,
@@ -309,7 +309,7 @@
     {
       "question": "what does the variational map-em algorithm ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.007733345031738281,
+      "latency": 0.27764010429382324,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -329,7 +329,7 @@
     {
       "question": "what created the nonmonotonic behavior ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.036824703216552734,
+      "latency": 0.07325911521911621,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -349,7 +349,7 @@
     {
       "question": "the optimal bayes point is equivalent equivalent to what ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.001623392105102539,
+      "latency": 0.00315093994140625,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -369,7 +369,7 @@
     {
       "question": "according to h , what does the word clouds mean ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.029770612716674805,
+      "latency": 0.05128836631774902,
       "answer_similarity": 0.09865621511919305,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -389,7 +389,7 @@
     {
       "question": "what techniques show that ebek are more understandable than the latent basis in images datasets ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.03489112854003906,
+      "latency": 0.06963729858398438,
       "answer_similarity": 0.0,
       "faithfulness": 0.013367797683367816,
       "hallucination": 0.9866322023166322,
@@ -419,7 +419,7 @@
     {
       "question": "what type of configurators is expensive in comparison ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.02555704116821289,
+      "latency": 0.04746866226196289,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -439,7 +439,7 @@
     {
       "question": "what kind of systems can hire voluntary workers ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0337071418762207,
+      "latency": 0.041675567626953125,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -459,7 +459,7 @@
     {
       "question": "what do existing approaches focus on inferring place labels with ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.03241109848022461,
+      "latency": 0.24569153785705566,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -489,7 +489,7 @@
     {
       "question": "why is the light field ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.024817228317260742,
+      "latency": 0.17798733711242676,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -509,7 +509,7 @@
     {
       "question": "restricted quantifiers turn out to be a convenient solution to what ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.033797502517700195,
+      "latency": 0.08271098136901855,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -539,7 +539,7 @@
     {
       "question": "what is the name of interval-based possibilistic ?",
       "answer": "Interval-based possibilistic logic is the name of the flexible setting being discussed in the provided context.",
-      "latency": 4.283465147018433,
+      "latency": 57.84981393814087,
       "answer_similarity": 0.2605556710562624,
       "faithfulness": 0.36482176835374314,
       "hallucination": 0.6351782316462569,
@@ -569,7 +569,7 @@
     {
       "question": "what does the target behavior ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.03265118598937988,
+      "latency": 0.5228121280670166,
       "answer_similarity": 0.0,
       "faithfulness": 0.018469882789275235,
       "hallucination": 0.9815301172107248,
@@ -599,7 +599,7 @@
     {
       "question": "what is an influential control paradigm for building agents ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.002153635025024414,
+      "latency": 0.0021495819091796875,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -619,7 +619,7 @@
     {
       "question": "what is a key strategy for speeding up computation ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.027555227279663086,
+      "latency": 0.0372772216796875,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -649,7 +649,7 @@
     {
       "question": "what kind of framework on test data ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0016543865203857422,
+      "latency": 0.001931905746459961,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -669,7 +669,7 @@
     {
       "question": "what is cbrw ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0015492439270019531,
+      "latency": 0.002276182174682617,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -689,7 +689,7 @@
     {
       "question": "what type of entity did we say we are similar to ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.02954697608947754,
+      "latency": 0.053177595138549805,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -709,7 +709,7 @@
     {
       "question": "what are techniques based on ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.020621299743652344,
+      "latency": 0.03752303123474121,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -729,7 +729,7 @@
     {
       "question": "what does crowdsourcing machine translation show ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0017211437225341797,
+      "latency": 0.0023102760314941406,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -749,7 +749,7 @@
     {
       "question": "what is one ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.022352933883666992,
+      "latency": 0.030820369720458984,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -769,7 +769,7 @@
     {
       "question": "other than computer players , what kind of players does the minimax theorem have ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.025960922241210938,
+      "latency": 0.11757445335388184,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -799,7 +799,7 @@
     {
       "question": "according to the paper , what is the reliable estimation of the computer points ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.027619600296020508,
+      "latency": 0.10566401481628418,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -819,7 +819,7 @@
     {
       "question": "what type of networks does the semantic model have ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.030414581298828125,
+      "latency": 0.04573369026184082,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -849,7 +849,7 @@
     {
       "question": "what is iterative voting ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.002471446990966797,
+      "latency": 0.0041010379791259766,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -869,7 +869,7 @@
     {
       "question": "what kind of projects does solvers have ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.022308349609375,
+      "latency": 0.04187369346618652,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -899,7 +899,7 @@
     {
       "question": "along with semantic choices al , what kind of choices is attractive in multi-relational databases ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0014925003051757812,
+      "latency": 0.001958608627319336,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -919,7 +919,7 @@
     {
       "question": "what has been done in the recent years ?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.019414663314819336,
+      "latency": 0.034234046936035156,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,

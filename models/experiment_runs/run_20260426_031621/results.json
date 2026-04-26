@@ -3,7 +3,7 @@
     {
       "question": "What is the main purpose of the fire-fighting and gas detection robot?",
       "answer": "The main purpose of the fire-fighting and gas detection robot is to automatically detect fire and gas leakage, provide alerts, and assist in extinguishing small fires.",
-      "latency": 22.931220054626465,
+      "latency": 80.47406196594238,
       "answer_similarity": 0.33083439657312297,
       "faithfulness": 0.2890415076736482,
       "hallucination": 0.7109584923263518,
@@ -14,8 +14,8 @@
       "uncertainty": 0.0,
       "rejection": 0.0,
       "confidence": 0.598238051158639,
-      "bloom_confidence": 0.35218745470046997,
-      "bloom_uncertainty": 0.943990737428655,
+      "bloom_confidence": 0.27496928625728456,
+      "bloom_uncertainty": 0.9512945507040125,
       "context_used": true,
       "rejected": false,
       "chunks": [
@@ -26,7 +26,7 @@
           "privacy_score": 0.2154752349010998,
           "raw_faiss_score": 0.7099552154541016,
           "bloom_level": "Create",
-          "uncertainty": 0.8283988223751391
+          "uncertainty": 0.9892658769499412
         },
         {
           "text": "\u25cf\u200b The MQ-2 gas sensor will continuously monitor air quality and detect gases such as LPG, methane, and smoke. \u25cf\u200b Multiple flame sensors will be placed at different positions (left, center, right) to detect the direction of fire. \u25cf\u200b An optional ultrasonic sensor will be used to detect obstacles and measure distance. Sensor data will be sent to the microcontroller for real-time processing. 2.3 Movement Control The robot\u2019s movement system will be controlled using programmed logic. \u25cf\u200b The L298N motor driver will receive signals from the microcontroller. \u25cf\u200b Based on flame sensor input, the robot will move toward the fire source. \u25cf\u200b The robot will be programmed to: \u25cb\u200b Move forward \u25cb\u200b Turn left or right depending on fire direction \u25cb\u200b Stop when close to the fire This ensures accurate navigation toward the detected hazard. 2.4 Fire Extinguishing System A fire suppression mechanism will be implemented to control small fires. \u25cf\u200b A 12V water pump will be connected using a relay module. \u25cf\u200b When fire is detected, the microcontroller will activate the relay. \u25cf\u200b The relay will turn on the pump, which will spray water through a pipe toward the fire. \u25cf\u200b A servo motor may be used to adjust the direction of the water spray. This allows the robot to actively extinguish small fires. 2.5 Alert System An alert mechanism will be included to notify users about potential dangers. \u25cf\u200b A buzzer will be activated when fire or gas leakage is detected. \u25cf\u200b Optional WiFi/mobile alerts can be implemented using ESP32. \u25cf\u200b Alerts will help users take immediate action even if they are not physically present. 2.6 System Integration All subsystems will be combined into a single working unit. \u25cf\u200b Sensors, motors, pump, and alert system will be connected to the microcontroller. \u25cf\u200b The system will be programmed to perform tasks automatically.",
@@ -34,8 +34,8 @@
           "semantic_score": 0.6525359153747559,
           "privacy_score": 0.21347543958174695,
           "raw_faiss_score": 0.6525359153747559,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Apply",
+          "uncertainty": 0.9655763701913598
         },
         {
           "text": "\u25cf\u200b Based on flame sensor input, the robot will move toward the fire source. \u25cf\u200b The robot will be programmed to: \u25cb\u200b Move forward \u25cb\u200b Turn left or right depending on fire direction \u25cb\u200b Stop when close to the fire This ensures accurate navigation toward the detected hazard. 2.4 Fire Extinguishing System A fire suppression mechanism will be implemented to control small fires. \u25cf\u200b A 12V water pump will be connected using a relay module. \u25cf\u200b When fire is detected, the microcontroller will activate the relay. \u25cf\u200b The relay will turn on the pump, which will spray water through a pipe toward the fire. \u25cf\u200b A servo motor may be used to adjust the direction of the water spray. This allows the robot to actively extinguish small fires. 2.5 Alert System An alert mechanism will be included to notify users about potential dangers. \u25cf\u200b A buzzer will be activated when fire or gas leakage is detected. \u25cf\u200b Optional WiFi/mobile alerts can be implemented using ESP32. \u25cf\u200b Alerts will help users take immediate action even if they are not physically present. 2.6 System Integration All subsystems will be combined into a single working unit. \u25cf\u200b Sensors, motors, pump, and alert system will be connected to the microcontroller. \u25cf\u200b The system will be programmed to perform tasks automatically. \u25cf\u200b Proper wiring and power management will be ensured for smooth operation. 2.7 Testing and Calibration The final stage involves testing and improving system performance. \u25cf\u200b Individual components (sensors, motors, pump) will be tested separately. \u25cf\u200b The complete system will be tested in real-life scenarios. \u25cf\u200b Sensor sensitivity will be adjusted for accurate detection. \u25cf\u200b Movement and response time will be optimized.",
@@ -43,15 +43,15 @@
           "semantic_score": 0.6256937384605408,
           "privacy_score": 0.2159517115620892,
           "raw_faiss_score": 0.6256937384605408,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Apply",
+          "uncertainty": 0.9642104688209421
         }
       ]
     },
     {
       "question": "What problem does the robot aim to solve?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.4294612407684326,
+      "latency": 16.820117235183716,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -62,8 +62,8 @@
       "uncertainty": 1.0,
       "rejection": 1.0,
       "confidence": 0.0,
-      "bloom_confidence": 0.35218745470046997,
-      "bloom_uncertainty": 0.943990737428655,
+      "bloom_confidence": 0.30055379989528697,
+      "bloom_uncertainty": 0.9521915347408353,
       "context_used": false,
       "rejected": true,
       "chunks": []
@@ -71,7 +71,7 @@
     {
       "question": "What are the main components of the robot system?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.03047800064086914,
+      "latency": 0.3360309600830078,
       "answer_similarity": 0.0,
       "faithfulness": 0.0028222639680457054,
       "hallucination": 0.9971777360319543,
@@ -82,8 +82,8 @@
       "uncertainty": 1.0,
       "rejection": 1.0,
       "confidence": 0.3871828631657337,
-      "bloom_confidence": 0.1666666716337204,
-      "bloom_uncertainty": 0.9999999456006516,
+      "bloom_confidence": 0.3715847381900066,
+      "bloom_uncertainty": 0.9184750611223276,
       "context_used": true,
       "rejected": true,
       "chunks": [
@@ -93,8 +93,8 @@
           "semantic_score": 0.4630568027496338,
           "privacy_score": 0.21545357473631457,
           "raw_faiss_score": 0.4630568027496338,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Apply",
+          "uncertainty": 0.9875565375437662
         },
         {
           "text": "This allows the robot to actively extinguish small fires. 2.5 Alert System An alert mechanism will be included to notify users about potential dangers. \u25cf\u200b A buzzer will be activated when fire or gas leakage is detected. \u25cf\u200b Optional WiFi/mobile alerts can be implemented using ESP32. \u25cf\u200b Alerts will help users take immediate action even if they are not physically present. 2.6 System Integration All subsystems will be combined into a single working unit. \u25cf\u200b Sensors, motors, pump, and alert system will be connected to the microcontroller. \u25cf\u200b The system will be programmed to perform tasks automatically. \u25cf\u200b Proper wiring and power management will be ensured for smooth operation. 2.7 Testing and Calibration The final stage involves testing and improving system performance. \u25cf\u200b Individual components (sensors, motors, pump) will be tested separately. \u25cf\u200b The complete system will be tested in real-life scenarios. \u25cf\u200b Sensor sensitivity will be adjusted for accurate detection. \u25cf\u200b Movement and response time will be optimized. Any errors or issues will be fixed to ensure reliable performance 3. Social Impact and Motivation This project helps prevent fire accidents, protect lives and property, and provides a low-cost safety solution for small businesses. It enables automatic monitoring without human presence. 4. Budget Plan No. Component Quantity Approx. Price (BDT) Purpose / Notes 1 ESP32 Microcontroller 1 ~500\u2013700 Main controller to process sensor data and control motors, pump, and alerts 2 L298N Motor Driver Module 1 160 Controls direction and speed of DC motors 3 12V DC Motors with Wheels 2 160 \u00d7 2 = 320 Provides movement of the robot 4 Servo Motor (SG90) 1 140 Rotates nozzle or sensor for better coverage 5 5V Relay Module (Single Channel) 1 80 Controls water pump safely using microcontroller 6 12V Mini Water Pump 1 130 Sprays water to extinguish fire 7 Flame Sensor Modules 3 70 \u00d7 3 = 210 Detects fire direction (Left, Center, Right) 8 MQ-2 Gas Sensor 1 200 Detects gas leakage and smoke 9 Ultrasonic Sensor (HC-SR04) 1 100 Detects obstacles and measures distance 10 PVC Board / Chassis 1 240 Base platform for mounting all components 11 12V Battery Pack (3\u00d718650 Li-ion) 1 80 Main power source 12 Battery Holder (18650) 2 170 Holds and connects battery cells safely 13 On/Off Switch 1 15 Controls power supply 14 Water Pipe (Silicone Tube) 1 20 Connects pump to nozzle 5.",
@@ -102,8 +102,8 @@
           "semantic_score": 0.45076411962509155,
           "privacy_score": 0.21006207927138631,
           "raw_faiss_score": 0.45076411962509155,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Create",
+          "uncertainty": 0.968364059788072
         },
         {
           "text": "\u25cf\u200b The system will be programmed to perform tasks automatically. \u25cf\u200b Proper wiring and power management will be ensured for smooth operation. 2.7 Testing and Calibration The final stage involves testing and improving system performance. \u25cf\u200b Individual components (sensors, motors, pump) will be tested separately. \u25cf\u200b The complete system will be tested in real-life scenarios. \u25cf\u200b Sensor sensitivity will be adjusted for accurate detection. \u25cf\u200b Movement and response time will be optimized. Any errors or issues will be fixed to ensure reliable performance 3. Social Impact and Motivation This project helps prevent fire accidents, protect lives and property, and provides a low-cost safety solution for small businesses. It enables automatic monitoring without human presence. 4. Budget Plan No. Component Quantity Approx. Price (BDT) Purpose / Notes 1 ESP32 Microcontroller 1 ~500\u2013700 Main controller to process sensor data and control motors, pump, and alerts 2 L298N Motor Driver Module 1 160 Controls direction and speed of DC motors 3 12V DC Motors with Wheels 2 160 \u00d7 2 = 320 Provides movement of the robot 4 Servo Motor (SG90) 1 140 Rotates nozzle or sensor for better coverage 5 5V Relay Module (Single Channel) 1 80 Controls water pump safely using microcontroller 6 12V Mini Water Pump 1 130 Sprays water to extinguish fire 7 Flame Sensor Modules 3 70 \u00d7 3 = 210 Detects fire direction (Left, Center, Right) 8 MQ-2 Gas Sensor 1 200 Detects gas leakage and smoke 9 Ultrasonic Sensor (HC-SR04) 1 100 Detects obstacles and measures distance 10 PVC Board / Chassis 1 240 Base platform for mounting all components 11 12V Battery Pack (3\u00d718650 Li-ion) 1 80 Main power source 12 Battery Holder (18650) 2 170 Holds and connects battery cells safely 13 On/Off Switch 1 15 Controls power supply 14 Water Pipe (Silicone Tube) 1 20 Connects pump to nozzle 5. Gantt Chart 6. Circuit Diagram 7. CEP Mapping Ks (Knowledge) K Description How Addressed K3 Engineering fundamentals Use of sensors, circuits, and programming K4 Specialized knowledge Robotics system design and automation K5 Design knowledge Designing robot structure and control logic K6 Engineering practice Implementation using real hardware Ps (Problem Solving) P Description How Addressed P1 Depth of knowledge Integration of sensors + robotics P2 Conflicting requirements Cost vs performance balance P7 Interdependence Sensors, motors, and control system working together As (Engineering Activities) A Description How Addressed A1 Resources Use of hardware components and tools A2 Interaction Team collaboration and system integration A5 Familiarity Applying known robotics concepts in a new system 8. Conclusion The proposed Firefighting and Gas Detection Robot aims to provide a low-cost, automated safety solution for detecting fire and gas leakage. The system will help reduce risks, improve safety, and demonstrate the practical application of robotics in real-life problems. With proper implementation, this project can be extended into a more advanced smart safety system.",
@@ -111,15 +111,15 @@
           "semantic_score": 0.4368671774864197,
           "privacy_score": 0.2049493805387788,
           "raw_faiss_score": 0.4368671774864197,
-          "bloom_level": "Apply",
-          "uncertainty": 0.7583159732539363
+          "bloom_level": "Create",
+          "uncertainty": 0.9535269644684059
         }
       ]
     },
     {
       "question": "How does the robot detect fire or gas?",
       "answer": "The Firefighting and Gas Detection Robot detects fire and gas leakage through the following sensors:\n\n1. **MQ-2 Gas Sensor**: This sensor continuously monitors air quality and detects gases such as LPG (liquefied petroleum gas), methane, and smoke. It is crucial for detecting the presence of gas leaks, which can be a precursor to a fire.\n\n2. **Multiple Flame Sensors**: These sensors are placed at different positions (left, center, right) to detect the direction of fire. By detecting the direction of the fire, the robot can better target and extinguish it.\n\n3. **Optional Ultrasonic Sensor**: This sensor can be used to detect obstacles and measure distance, which is useful for navigating the environment and avoiding obstacles during movement.\n\nThe robot uses the data from these sensors to provide alerts and assist in extinguishing small fires.",
-      "latency": 10.365720272064209,
+      "latency": 32.93615412712097,
       "answer_similarity": 0.44146156474608134,
       "faithfulness": 0.4414335769241796,
       "hallucination": 0.5585664230758204,
@@ -130,8 +130,8 @@
       "uncertainty": 0.0,
       "rejection": 0.0,
       "confidence": 0.6277305083625728,
-      "bloom_confidence": 0.1666666716337204,
-      "bloom_uncertainty": 0.9999999456006516,
+      "bloom_confidence": 0.3139531475608831,
+      "bloom_uncertainty": 0.9526277183445595,
       "context_used": true,
       "rejected": false,
       "chunks": [
@@ -142,7 +142,7 @@
           "privacy_score": 0.2154752349010998,
           "raw_faiss_score": 0.72944176197052,
           "bloom_level": "Create",
-          "uncertainty": 0.8283988223751391
+          "uncertainty": 0.9892658769499412
         },
         {
           "text": "\u25cf\u200b Two DC motors with wheels will be mounted to enable movement. \u25cf\u200b The ESP32 microcontroller will be installed as the main control unit. \u25cf\u200b The motor driver (L298N) will be connected to control the motors. \u25cf\u200b A battery pack will be used to supply power to all components. All components will be securely mounted to ensure stability and proper functioning of the robot. 2.2 Sensor Integration Sensors will be integrated to detect fire and gas leakage in the environment. \u25cf\u200b The MQ-2 gas sensor will continuously monitor air quality and detect gases such as LPG, methane, and smoke. \u25cf\u200b Multiple flame sensors will be placed at different positions (left, center, right) to detect the direction of fire. \u25cf\u200b An optional ultrasonic sensor will be used to detect obstacles and measure distance. Sensor data will be sent to the microcontroller for real-time processing. 2.3 Movement Control The robot\u2019s movement system will be controlled using programmed logic. \u25cf\u200b The L298N motor driver will receive signals from the microcontroller. \u25cf\u200b Based on flame sensor input, the robot will move toward the fire source. \u25cf\u200b The robot will be programmed to: \u25cb\u200b Move forward \u25cb\u200b Turn left or right depending on fire direction \u25cb\u200b Stop when close to the fire This ensures accurate navigation toward the detected hazard. 2.4 Fire Extinguishing System A fire suppression mechanism will be implemented to control small fires. \u25cf\u200b A 12V water pump will be connected using a relay module. \u25cf\u200b When fire is detected, the microcontroller will activate the relay. \u25cf\u200b The relay will turn on the pump, which will spray water through a pipe toward the fire. \u25cf\u200b A servo motor may be used to adjust the direction of the water spray. This allows the robot to actively extinguish small fires. 2.5 Alert System An alert mechanism will be included to notify users about potential dangers.",
@@ -150,8 +150,8 @@
           "semantic_score": 0.6899869441986084,
           "privacy_score": 0.21451998010076265,
           "raw_faiss_score": 0.6899869441986084,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Create",
+          "uncertainty": 0.9826689658694541
         },
         {
           "text": "\u25cf\u200b An optional ultrasonic sensor will be used to detect obstacles and measure distance. Sensor data will be sent to the microcontroller for real-time processing. 2.3 Movement Control The robot\u2019s movement system will be controlled using programmed logic. \u25cf\u200b The L298N motor driver will receive signals from the microcontroller. \u25cf\u200b Based on flame sensor input, the robot will move toward the fire source. \u25cf\u200b The robot will be programmed to: \u25cb\u200b Move forward \u25cb\u200b Turn left or right depending on fire direction \u25cb\u200b Stop when close to the fire This ensures accurate navigation toward the detected hazard. 2.4 Fire Extinguishing System A fire suppression mechanism will be implemented to control small fires. \u25cf\u200b A 12V water pump will be connected using a relay module. \u25cf\u200b When fire is detected, the microcontroller will activate the relay. \u25cf\u200b The relay will turn on the pump, which will spray water through a pipe toward the fire. \u25cf\u200b A servo motor may be used to adjust the direction of the water spray. This allows the robot to actively extinguish small fires. 2.5 Alert System An alert mechanism will be included to notify users about potential dangers. \u25cf\u200b A buzzer will be activated when fire or gas leakage is detected. \u25cf\u200b Optional WiFi/mobile alerts can be implemented using ESP32. \u25cf\u200b Alerts will help users take immediate action even if they are not physically present. 2.6 System Integration All subsystems will be combined into a single working unit. \u25cf\u200b Sensors, motors, pump, and alert system will be connected to the microcontroller. \u25cf\u200b The system will be programmed to perform tasks automatically. \u25cf\u200b Proper wiring and power management will be ensured for smooth operation. 2.7 Testing and Calibration The final stage involves testing and improving system performance.",
@@ -159,15 +159,15 @@
           "semantic_score": 0.6572121381759644,
           "privacy_score": 0.2148358491893853,
           "raw_faiss_score": 0.6572121381759644,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Apply",
+          "uncertainty": 0.9587189199113327
         }
       ]
     },
     {
       "question": "What happens when gas is detected?",
       "answer": "I cannot answer confidently from the available non-sensitive documents. Please provide more specific or safer supporting material.",
-      "latency": 0.0949101448059082,
+      "latency": 0.4983174800872803,
       "answer_similarity": 0.0,
       "faithfulness": 0.0,
       "hallucination": 1.0,
@@ -178,8 +178,8 @@
       "uncertainty": 1.0,
       "rejection": 1.0,
       "confidence": 0.34349028179663493,
-      "bloom_confidence": 0.35218745470046997,
-      "bloom_uncertainty": 0.943990737428655,
+      "bloom_confidence": 0.25287418186204663,
+      "bloom_uncertainty": 0.9680534220141568,
       "context_used": true,
       "rejected": true,
       "chunks": [
@@ -189,8 +189,8 @@
           "semantic_score": 0.4081263542175293,
           "privacy_score": 0.21545357473631457,
           "raw_faiss_score": 0.4081263542175293,
-          "bloom_level": "Remember",
-          "uncertainty": 0.931193645412435
+          "bloom_level": "Apply",
+          "uncertainty": 0.986757155908814
         }
       ]
     }
@@ -206,7 +206,7 @@
         "lambda_privacy": 0.5
       },
       "summary": {
-        "latency": 2.5098145484924315,
+        "latency": 3.9430989742279055,
         "answer_similarity": 0.1633808549566067,
         "faithfulness": 0.14788177646898543,
         "hallucination": 0.8521182235310146,
@@ -217,8 +217,8 @@
         "uncertainty": 0.6,
         "rejection": 0.6,
         "confidence": 0.35710755144349465,
-        "bloom_confidence": 0.2779791414737701,
-        "bloom_uncertainty": 0.9663944206974537
+        "bloom_confidence": 0.3027870307531016,
+        "bloom_uncertainty": 0.9485284573851782
       }
     },
     "no_privacy": {
@@ -230,7 +230,7 @@
         "lambda_privacy": 0.5
       },
       "summary": {
-        "latency": 2.3136284828186033,
+        "latency": 3.2238059043884277,
         "answer_similarity": 0.16017100624768904,
         "faithfulness": 0.13939321738927496,
         "hallucination": 0.860606782610725,
@@ -241,8 +241,8 @@
         "uncertainty": 0.6,
         "rejection": 0.6,
         "confidence": 0.3920091625141849,
-        "bloom_confidence": 0.2779791414737701,
-        "bloom_uncertainty": 0.9663944206974537
+        "bloom_confidence": 0.3027870307531016,
+        "bloom_uncertainty": 0.9485284573851782
       }
     },
     "no_diversity": {
@@ -254,7 +254,7 @@
         "lambda_privacy": 0.5
       },
       "summary": {
-        "latency": 2.5623013019561767,
+        "latency": 2.9561410427093504,
         "answer_similarity": 0.16607575297913912,
         "faithfulness": 0.16097378692809014,
         "hallucination": 0.8390262130719097,
@@ -265,8 +265,8 @@
         "uncertainty": 0.6,
         "rejection": 0.6,
         "confidence": 0.3689154286890446,
-        "bloom_confidence": 0.2779791414737701,
-        "bloom_uncertainty": 0.9663944206974537
+        "bloom_confidence": 0.3027870307531016,
+        "bloom_uncertainty": 0.9485284573851782
       }
     },
     "no_rejection": {
@@ -278,7 +278,7 @@
         "lambda_privacy": 0.5
       },
       "summary": {
-        "latency": 9.679127502441407,
+        "latency": 10.426600694656372,
         "answer_similarity": 0.22828819832578687,
         "faithfulness": 0.3051273226069982,
         "hallucination": 0.6948726773930018,
@@ -289,8 +289,8 @@
         "uncertainty": 0.6,
         "rejection": 0.0,
         "confidence": 0.35710755144349465,
-        "bloom_confidence": 0.2779791414737701,
-        "bloom_uncertainty": 0.9663944206974537
+        "bloom_confidence": 0.3027870307531016,
+        "bloom_uncertainty": 0.9485284573851782
       }
     }
   },

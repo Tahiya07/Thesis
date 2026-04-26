@@ -37,11 +37,15 @@ class AcademicSystem:
         bloom_mode = "trained" if self.rag.ldl.is_trained else "heuristic"
 
         rejection_reasons = []
-        if confidence < 0.35:
+        if confidence < 0.20:
             rejection_reasons.append("low_retrieval_confidence")
         if self.rag.use_privacy and mean_chunk_privacy > 0.45:
             rejection_reasons.append("high_privacy_risk")
-        if bloom_uncertainty > 0.85 and confidence < 0.50:
+        if (
+            bloom_uncertainty > 0.97 and
+            bloom_confidence < 0.25 and
+            confidence < 0.25
+        ):
             rejection_reasons.append("high_query_uncertainty")
 
         rejected = bool(rejection_reasons) if self.rag.use_rejection else False
@@ -91,6 +95,45 @@ class AcademicSystem:
             "bloom_uncertainty": bloom_uncertainty,
             "chunks": chunks
         }
+
+    def classify_bloom_question(self, question: str):
+        bloom_level, bloom_dist = self.rag.ldl.predict(question)
+        bloom_uncertainty = self.rag.ldl.uncertainty(bloom_dist)
+        bloom_confidence = self.rag.ldl.confidence(bloom_dist)
+        bloom_mode = "trained" if self.rag.ldl.is_trained else "heuristic"
+        rejected = self.rag.ldl.reject(bloom_dist)
+
+        return {
+            "question": question,
+            "bloom_level": bloom_level,
+            "bloom_mode": bloom_mode,
+            "bloom_confidence": bloom_confidence,
+            "bloom_uncertainty": bloom_uncertainty,
+            "rejected": rejected,
+            "distribution": bloom_dist
+        }
+
+    def classify_bloom_text(self, text: str):
+        lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+        questions = []
+
+        for line in lines:
+            if "?" in line:
+                parts = [part.strip() + "?" for part in line.split("?") if part.strip()]
+                questions.extend(parts)
+            elif len(line.split()) >= 4:
+                questions.append(line)
+
+        if not questions and text.strip():
+            questions = [text.strip()]
+
+        return [self.classify_bloom_question(q) for q in questions]
+
+    def classify_bloom_pdf(self, path: str):
+        from src.loaders.pdf_loader import load_pdf_text
+
+        text = load_pdf_text(path)
+        return self.classify_bloom_text(text)
 
     def add_pdf(self, path: str):
         from src.loaders.pdf_loader import load_pdf_text

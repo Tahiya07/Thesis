@@ -1,0 +1,110 @@
+[
+  {
+    "question": "What is the main purpose of the Firefighting and Gas Detection Robot?",
+    "reference": "The robot is intended to automatically detect fire and gas leakage, provide alerts, and assist in extinguishing small fires.",
+    "keywords": ["detect fire", "gas leakage", "provide alerts", "extinguishing small fires"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "What base platform is proposed for assembling the robot hardware?",
+    "reference": "A PVC board or robot chassis will be used as the base platform.",
+    "keywords": ["PVC board", "robot chassis", "base platform"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "Which microcontroller acts as the main control unit in the robot?",
+    "reference": "The ESP32 microcontroller is used as the main control unit.",
+    "keywords": ["ESP32", "main control unit", "microcontroller"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "What is the function of the L298N motor driver in the system?",
+    "reference": "The L298N motor driver controls the motors by receiving signals from the microcontroller and managing motor direction and speed.",
+    "keywords": ["L298N", "motor driver", "control motors", "direction", "speed"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "How does the MQ-2 gas sensor contribute to the robot?",
+    "reference": "The MQ-2 gas sensor continuously monitors air quality and detects gases such as LPG, methane, and smoke.",
+    "keywords": ["MQ-2", "air quality", "LPG", "methane", "smoke"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "Why are multiple flame sensors placed at left, center, and right positions?",
+    "reference": "Multiple flame sensors are placed at left, center, and right positions so the robot can detect the direction of the fire.",
+    "keywords": ["flame sensors", "left", "center", "right", "direction of fire"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "What is the role of the optional ultrasonic sensor?",
+    "reference": "The optional ultrasonic sensor is used to detect obstacles and measure distance.",
+    "keywords": ["ultrasonic sensor", "detect obstacles", "measure distance"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "If the flame sensors indicate a fire source to one side, how should the robot move?",
+    "reference": "The robot should turn left or right depending on the fire direction and move toward the fire source.",
+    "keywords": ["turn left", "turn right", "fire direction", "move toward fire"],
+    "expected_bloom": "Apply"
+  },
+  {
+    "question": "What should the robot do when it gets close to the fire source?",
+    "reference": "The robot should stop when it is close to the fire.",
+    "keywords": ["stop", "close to the fire"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "How is the fire extinguishing mechanism activated according to the proposal?",
+    "reference": "When fire is detected, the microcontroller activates the relay, which turns on the 12V water pump to spray water toward the fire.",
+    "keywords": ["microcontroller", "relay", "12V water pump", "spray water"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "What is the purpose of the servo motor in the extinguishing subsystem?",
+    "reference": "The servo motor may be used to adjust the direction of the water spray for better coverage.",
+    "keywords": ["servo motor", "adjust direction", "water spray", "coverage"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "What happens when gas leakage or fire is detected by the alert system?",
+    "reference": "A buzzer is activated when fire or gas leakage is detected, and optional WiFi or mobile alerts can also be sent using ESP32.",
+    "keywords": ["buzzer", "gas leakage", "WiFi", "mobile alerts", "ESP32"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "How does system integration combine the robot subsystems into one unit?",
+    "reference": "System integration connects sensors, motors, pump, and alert system to the microcontroller and programs them to perform tasks automatically with proper wiring and power management.",
+    "keywords": ["sensors", "motors", "pump", "alert system", "microcontroller", "wiring", "power management"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "Which component in the budget is responsible for spraying water to extinguish fire?",
+    "reference": "The 12V mini water pump is the component that sprays water to extinguish fire.",
+    "keywords": ["12V mini water pump", "sprays water", "extinguish fire"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "Which component processes sensor data and controls the motors, pump, and alerts?",
+    "reference": "The ESP32 microcontroller processes sensor data and controls the motors, pump, and alerts.",
+    "keywords": ["ESP32 microcontroller", "process sensor data", "control motors", "pump", "alerts"],
+    "expected_bloom": "Remember"
+  },
+  {
+    "question": "Compare the roles of the flame sensors and the MQ-2 gas sensor in the robot.",
+    "reference": "The flame sensors detect the direction of fire, while the MQ-2 gas sensor monitors air quality and detects gases such as LPG, methane, and smoke.",
+    "keywords": ["flame sensors", "direction of fire", "MQ-2", "air quality", "LPG", "methane", "smoke"],
+    "expected_bloom": "Analyze"
+  },
+  {
+    "question": "Why is the robot described as a low-cost automated safety solution in the conclusion?",
+    "reference": "The robot is described as low-cost and automated because it can detect fire and gas leakage, reduce risks, improve safety, and demonstrate practical robotics using affordable components.",
+    "keywords": ["low-cost", "automated safety solution", "detect fire", "gas leakage", "improve safety"],
+    "expected_bloom": "Understand"
+  },
+  {
+    "question": "If you wanted the robot to notify users who are not physically present, which feature from the proposal would you use?",
+    "reference": "You would use the optional WiFi or mobile alert feature implemented through the ESP32.",
+    "keywords": ["WiFi", "mobile alert", "ESP32", "not physically present"],
+    "expected_bloom": "Apply"
+  }
+]

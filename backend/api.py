@@ -46,6 +46,10 @@ class URLRequest(BaseModel):
     url: str
 
 
+class BloomRequest(BaseModel):
+    question: str
+
+
 # =====================================================
 # HEALTH
 # =====================================================
@@ -81,6 +85,23 @@ def ask(req: Query):
         return {
             "error": str(e)
         }
+
+
+@app.post("/classify/bloom")
+def classify_bloom(req: BloomRequest):
+
+    if not req.question.strip():
+        return {"error": "Empty question"}
+
+    try:
+        sys = get_system()
+        result = sys.classify_bloom_question(req.question)
+        logger.info(f"BLOOM QUESTION: {req.question}")
+        logger.info(f"BLOOM RESULT: {result}")
+        return result
+    except Exception as e:
+        logger.exception("/classify/bloom failed")
+        return {"error": str(e)}
 
 
 # =====================================================
@@ -147,3 +168,27 @@ async def ingest_pdf(file: UploadFile = File(...)):
         return {
             "error": str(e)
         }
+
+
+@app.post("/classify/bloom/pdf")
+async def classify_bloom_pdf(file: UploadFile = File(...)):
+
+    try:
+        sys = get_system()
+        file_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.pdf")
+        content = await file.read()
+
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        logger.info(f"PDF saved for Bloom classification: {file_path}")
+        result = sys.classify_bloom_pdf(file_path)
+
+        return {
+            "status": "success",
+            "file": file.filename,
+            "classifications": result
+        }
+    except Exception as e:
+        logger.exception("/classify/bloom/pdf failed")
+        return {"error": str(e)}
